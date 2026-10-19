@@ -14,6 +14,9 @@ import {
   Smartphone,
   Tag,
   ArrowRightLeft,
+  CreditCard,
+  ArrowDown,
+  RotateCcw,
 } from "lucide-react";
 import { useApp } from "@/components/providers/AppProviders";
 import { FinanceRepository } from "@/lib/offline/repository";
@@ -165,35 +168,57 @@ export function QuickAddModal() {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-white flex flex-col justify-between">
       {/* Container max-w-md matching mobile shell */}
       <div className="max-w-md mx-auto w-full flex-1 flex flex-col px-4 pt-3 pb-8 justify-between">
+  const typeTiles = [
+    { type: "expense" as TransactionType, label: "Expense", icon: CreditCard },
+    { type: "income" as TransactionType, label: "Income", icon: ArrowDown },
+    { type: "transfer" as TransactionType, label: "Transfer", icon: ArrowRightLeft },
+    { type: "refund" as TransactionType, label: "Refund", icon: RotateCcw },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-white flex flex-col justify-between">
+      {/* Container max-w-md matching mobile shell */}
+      <div className="max-w-md mx-auto w-full flex-1 flex flex-col px-4 pt-4 pb-6 justify-between space-y-4">
         <div className="space-y-4">
-          {/* 1. Header with back button */}
-          <div className="flex items-center space-x-2 py-1">
+          {/* 1. Header with X close button on left matching Image 4 Left */}
+          <div className="flex items-center justify-between py-1 relative">
             <button
               onClick={handleClose}
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-[#0B1D3A] hover:bg-slate-100 active:scale-95 transition-transform"
-              aria-label="Back"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-[#0B1D3A] hover:bg-slate-100 active:scale-95 transition-transform"
+              aria-label="Close"
             >
-              <ChevronLeft size={24} strokeWidth={2.4} />
+              <X size={22} strokeWidth={2.4} />
             </button>
-            <h1 className="text-xl font-bold text-[#0B1D3A]">Add transaction</h1>
+            <h1 className="text-base font-bold text-[#0B1D3A] absolute left-1/2 -translate-x-1/2">
+              Add Transaction
+            </h1>
+            <div className="w-10" />
           </div>
 
-          {/* 2. Type Selector Tabs */}
-          <div className="bg-slate-100/90 p-1 rounded-xl flex items-center">
-            {(["expense", "income", "transfer", "refund"] as TransactionType[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setType(t)}
-                className={`flex-1 py-2 text-xs font-semibold rounded-lg capitalize transition-all ${
-                  type === t
-                    ? "bg-[#1E5BFF] text-white shadow-xs"
-                    : "text-slate-600 hover:text-[#0B1D3A]"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
+          {/* 2. Four Type Selector Tiles in a Row matching Image 4 Left */}
+          <div className="grid grid-cols-4 gap-2">
+            {typeTiles.map((t) => {
+              const isSelected = type === t.type;
+              const Icon = t.icon;
+
+              return (
+                <button
+                  key={t.type}
+                  type="button"
+                  onClick={() => setType(t.type)}
+                  className={`flex flex-col items-center justify-center py-2.5 px-2 rounded-2xl transition-all ${
+                    isSelected
+                      ? "bg-white border-2 border-[#0047FF] text-[#0047FF] shadow-xs"
+                      : "bg-[#EEF3FF] border-2 border-transparent text-slate-600 hover:text-[#0B1D3A]"
+                  }`}
+                >
+                  <Icon size={18} strokeWidth={2.2} />
+                  <span className="text-[11px] font-bold mt-1 capitalize">
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {errorMsg && (
@@ -202,13 +227,10 @@ export function QuickAddModal() {
             </div>
           )}
 
-          {/* 3. Amount Input (₹) */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Amount (₹)</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-400">
-                ₹
-              </span>
+          {/* 3. Royal Blue Amount Card matching Image 4 Left */}
+          <div className="bg-[#0047FF] text-white p-5 rounded-[24px] shadow-[0_4px_20px_rgba(0,71,255,0.25)] space-y-1">
+            <div className="flex items-center space-x-1">
+              <span className="text-3xl sm:text-4xl font-extrabold text-white">₹</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -216,22 +238,23 @@ export function QuickAddModal() {
                 placeholder="0.00"
                 value={amountInput}
                 onChange={(e) => setAmountInput(e.target.value)}
-                className="w-full bg-[#F7F7FA] border border-[#E7EBF2] pl-10 pr-4 py-3.5 text-2xl font-extrabold text-[#0B1D3A] rounded-2xl tabular-nums focus:outline-[#1E5BFF] placeholder:text-slate-300"
+                className="w-full bg-transparent border-0 p-0 text-3xl sm:text-4xl font-extrabold text-white placeholder:text-white/60 focus:outline-none tabular-nums"
               />
             </div>
+            <p className="text-xs text-white/80 font-medium">Enter amount</p>
           </div>
 
-          {/* 4. Account & Date Row */}
+          {/* 4. Account & Date Two-Column Row matching Image 4 Left */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-[#0B1D3A] mb-1">
                 {type === "transfer" ? "From Account" : "Account"}
               </label>
               <div className="relative">
                 <select
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full appearance-none bg-white border border-[#E7EBF2] px-3 py-2.5 text-xs font-medium text-[#0B1D3A] rounded-xl focus:outline-[#1E5BFF]"
+                  className="w-full appearance-none bg-[#EEF3FF] border-0 px-3.5 py-3 text-xs font-bold text-[#0B1D3A] rounded-2xl focus:outline-[#0047FF]"
                 >
                   {accounts.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -239,20 +262,20 @@ export function QuickAddModal() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
               </div>
             </div>
 
             {type === "transfer" ? (
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#0B1D3A] mb-1">
                   To Account
                 </label>
                 <div className="relative">
                   <select
                     value={toAccountId}
                     onChange={(e) => setToAccountId(e.target.value)}
-                    className="w-full appearance-none bg-white border border-[#E7EBF2] px-3 py-2.5 text-xs font-medium text-[#0B1D3A] rounded-xl focus:outline-[#1E5BFF]"
+                    className="w-full appearance-none bg-[#EEF3FF] border-0 px-3.5 py-3 text-xs font-bold text-[#0B1D3A] rounded-2xl focus:outline-[#0047FF]"
                   >
                     {accounts.map((a) => (
                       <option key={a.id} value={a.id}>
@@ -260,36 +283,36 @@ export function QuickAddModal() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                 </div>
               </div>
             ) : (
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+                <label className="block text-xs font-bold text-[#0B1D3A] mb-1">Date</label>
                 <div className="relative">
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-white border border-[#E7EBF2] px-3 py-2.5 text-xs font-medium text-[#0B1D3A] rounded-xl focus:outline-[#1E5BFF]"
+                    className="w-full bg-[#EEF3FF] border-0 px-3.5 py-2.5 text-xs font-bold text-[#0B1D3A] rounded-2xl focus:outline-[#0047FF]"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          {/* 5. Category Tiles (Image 4 format with blue icons on subtle blue background) */}
+          {/* 5. Category Section (3x2 Grid) matching Image 4 Left */}
           {type !== "transfer" && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700">Category</label>
+              <div className="flex items-center justify-between px-0.5">
+                <label className="text-xs font-bold text-[#0B1D3A]">Category</label>
                 {categories.length > 6 && (
                   <button
                     type="button"
                     onClick={() => setShowAllCategories(!showAllCategories)}
-                    className="text-xs font-semibold text-[#1E5BFF] hover:underline"
+                    className="text-xs font-bold text-[#0047FF] hover:underline"
                   >
-                    {showAllCategories ? "Show less" : "See all >"}
+                    {showAllCategories ? "Show less" : "See all"}
                   </button>
                 )}
               </div>
@@ -304,16 +327,16 @@ export function QuickAddModal() {
                       key={cat.id}
                       type="button"
                       onClick={() => setCategoryId(cat.id)}
-                      className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${
+                      className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all ${
                         isSelected
-                          ? "border-[#1E5BFF] bg-[#EFF5FF] text-[#1E5BFF] shadow-xs"
-                          : "border-[#E7EBF2] bg-white text-slate-700 hover:border-slate-300"
+                          ? "bg-white border-2 border-[#0047FF] text-[#0047FF] shadow-xs"
+                          : "bg-[#EEF3FF] border-2 border-transparent text-[#0B1D3A] hover:bg-[#E4EDFF]"
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[#1E5BFF]">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center">
                         <Icon size={20} strokeWidth={2.2} />
                       </div>
-                      <span className="text-xs font-semibold mt-1.5 truncate max-w-[85px] text-center">
+                      <span className="text-xs font-bold mt-1 truncate max-w-[85px] text-center">
                         {cat.name}
                       </span>
                     </button>
@@ -323,62 +346,63 @@ export function QuickAddModal() {
             </div>
           )}
 
-          {/* 6. Payment Method Dropdown */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Payment method
-            </label>
-            <div className="relative">
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-full appearance-none bg-white border border-[#E7EBF2] px-3 py-2.5 text-xs font-medium text-[#0B1D3A] rounded-xl focus:outline-[#1E5BFF]"
-              >
-                <option value="upi">UPI</option>
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="netbanking">Net Banking</option>
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          {/* 6. Payment Method & Merchant Two-Column Row matching Image 4 Left */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-[#0B1D3A] mb-1">
+                Payment Method
+              </label>
+              <div className="relative">
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className="w-full appearance-none bg-[#EEF3FF] border-0 px-3.5 py-3 text-xs font-bold text-[#0B1D3A] rounded-2xl focus:outline-[#0047FF]"
+                >
+                  <option value="upi">UPI</option>
+                  <option value="cash">Cash</option>
+                  <option value="card">Card</option>
+                  <option value="netbanking">Net Banking</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#0B1D3A] mb-1">
+                Merchant (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Amazon, Swiggy"
+                value={merchant}
+                onChange={(e) => setMerchant(e.target.value)}
+                className="w-full bg-[#EEF3FF] border-0 px-3.5 py-3 text-xs font-semibold text-[#0B1D3A] rounded-2xl focus:outline-[#0047FF] placeholder:text-slate-400 placeholder:font-normal"
+              />
             </div>
           </div>
 
-          {/* 7. Merchant / Payee (Optional) */}
+          {/* 7. Note (Optional) matching Image 4 Left */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Merchant / Payee (optional)
+            <label className="block text-xs font-bold text-[#0B1D3A] mb-1">
+              Note (Optional)
             </label>
             <input
               type="text"
-              placeholder="e.g. Swiggy, Amazon, Zomato"
-              value={merchant}
-              onChange={(e) => setMerchant(e.target.value)}
-              className="w-full bg-white border border-[#E7EBF2] px-3 py-2.5 text-xs text-[#0B1D3A] rounded-xl focus:outline-[#1E5BFF] placeholder:text-slate-400"
-            />
-          </div>
-
-          {/* 8. Note (Optional) */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Note (optional)
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Monthly rent payment"
+              placeholder="e.g. Monthly rent"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-white border border-[#E7EBF2] px-3 py-2.5 text-xs text-[#0B1D3A] rounded-xl focus:outline-[#1E5BFF] placeholder:text-slate-400"
+              className="w-full bg-[#EEF3FF] border-0 px-3.5 py-3 text-xs font-semibold text-[#0B1D3A] rounded-2xl focus:outline-[#0047FF] placeholder:text-slate-400 placeholder:font-normal"
             />
           </div>
         </div>
 
-        {/* 9. Save CTA Button */}
-        <div className="pt-6">
+        {/* 8. Full-Width Charcoal Save Action Button matching Image 4 Left */}
+        <div className="pt-2">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full py-3.5 bg-[#1E5BFF] hover:bg-[#1546CC] text-white font-bold text-sm rounded-xl shadow-[0_4px_14px_rgba(30,91,255,0.3)] disabled:opacity-50 active:scale-98 transition-all"
+            className="w-full py-4 bg-[#121316] hover:bg-black text-white font-bold text-sm rounded-2xl shadow-[0_4px_14px_rgba(0,0,0,0.2)] disabled:opacity-50 active:scale-98 transition-all touch-target"
           >
             {isSubmitting ? "Saving..." : saveButtonLabel}
           </button>

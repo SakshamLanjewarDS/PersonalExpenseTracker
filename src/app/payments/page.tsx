@@ -187,162 +187,192 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F7FA]">
-      <AppHeader title="Payments" action="settings" showMonthSelector={true} />
+  const totalMonthlyEMIPaise = loans.reduce(
+    (sum, l) => addPaise(sum, l.installmentAmountPaise),
+    0
+  );
 
-      <main className="flex-1 px-4 py-4 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-5">
-        {/* Title and short explanation */}
-        <div>
-          <h2 className="text-base font-bold text-[#0B1D3A]">Loans & installments</h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Track EMI schedules, paid progress, and partial payment status.
-          </p>
-        </div>
+  return (
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F8FC]">
+      {/* 1. Header matching Image 4 Right */}
+      <AppHeader
+        title="Payments & Loans (EMI)"
+        action="settings"
+        showMonthSelector={true}
+        monthPlacement="right"
+      />
 
+      <main className="flex-1 px-4 py-3 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
         {/* Main EMI Card */}
         {loans.length === 0 ? (
-          /* Empty State matching Image 4 right */
-          <section aria-label="No EMI Plans">
-            <div className="bg-white border border-[#E7EBF2] p-8 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] flex flex-col items-center text-center space-y-3.5">
-              <div className="w-14 h-14 rounded-full bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center">
-                <Calendar size={28} strokeWidth={2} />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[#0B1D3A]">No EMI plans yet</h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-[240px] leading-relaxed">
-                  Add a loan to track due dates and payments.
+          /* Empty State matching Image 4 Right */
+          <section aria-label="No EMI Plans" className="space-y-4">
+            <div className="relative w-full rounded-[26px] overflow-hidden select-none">
+              <div className="bg-[#0047FF] text-white pt-6 px-6 pb-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center text-white mb-3 shadow-inner">
+                  <Calendar size={26} strokeWidth={2.2} />
+                </div>
+                <h2 className="text-2xl font-extrabold text-white">No EMI plans yet</h2>
+                <p className="text-xs text-white/80 mt-1 max-w-[260px] leading-relaxed">
+                  Keep due dates and repayments in one place.
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsAddLoanOpen(true)}
-                className="py-3 px-6 bg-[#1E5BFF] hover:bg-[#1546CC] text-white font-semibold text-xs rounded-xl shadow-sm active:scale-95 transition-all"
-              >
-                + Add EMI plan
-              </button>
+              {/* Bottom split with recessed action button */}
+              <div className="flex items-end bg-transparent">
+                <div className="flex-1 bg-[#0047FF] h-12 rounded-bl-[26px]" />
+                <div className="w-5 h-12 bg-[#0047FF] relative shrink-0">
+                  <div className="absolute inset-0 bg-[#F7F8FC] rounded-tl-[20px]" />
+                </div>
+                <div className="w-[142px] h-12 bg-transparent flex items-center justify-end pr-0.5 shrink-0 relative">
+                  <div className="absolute -top-3 right-0 w-3 h-3 bg-[#0047FF]">
+                    <div className="w-full h-full bg-[#F7F8FC] rounded-br-[12px]" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddLoanOpen(true)}
+                    className="w-full h-11 bg-[#121316] hover:bg-black text-white rounded-2xl flex items-center justify-center space-x-1.5 font-bold text-xs shadow-[0_4px_12px_rgba(0,0,0,0.22)] active:scale-95 transition-transform touch-target"
+                  >
+                    <Plus size={15} strokeWidth={2.8} />
+                    <span>Add plan</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Three feature rows matching Image 4 Right */}
+            <div className="space-y-3 pt-1">
+              <div className="bg-[#EEF3FF] p-4 rounded-[22px] flex items-center justify-between shadow-[0_1px_3px_rgba(0,56,255,0.03)]">
+                <div className="flex items-center space-x-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
+                    <Calendar size={20} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-[#0B1D3A]">Repayment schedule</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">View upcoming due dates.</p>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 shrink-0" />
+              </div>
+
+              <div className="bg-[#EEF3FF] p-4 rounded-[22px] flex items-center justify-between shadow-[0_1px_3px_rgba(0,56,255,0.03)]">
+                <div className="flex items-center space-x-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
+                    <BarChart2 size={20} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-[#0B1D3A]">Payment progress</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Track completed and pending payments.</p>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 shrink-0" />
+              </div>
+
+              <div className="bg-[#EEF3FF] p-4 rounded-[22px] flex items-center justify-between shadow-[0_1px_3px_rgba(0,56,255,0.03)]">
+                <div className="flex items-center space-x-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
+                    <FileText size={20} strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-[#0B1D3A]">Partial payments</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Make or track partial repayments.</p>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 shrink-0" />
+              </div>
             </div>
           </section>
         ) : (
           /* Populated EMI Plans */
-          <section aria-label="Active EMI Plans" className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500">Active Plans ({loans.length})</span>
+          <section aria-label="Active EMI Plans" className="space-y-4">
+            <div className="bg-[#0047FF] text-white p-5 rounded-[26px] shadow-[0_4px_16px_rgba(0,71,255,0.22)] flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                  Monthly Commitment
+                </p>
+                <p className="text-3xl font-extrabold tracking-tight tabular-nums mt-1">
+                  {formatPaise(totalMonthlyEMIPaise)}
+                </p>
+                <p className="text-xs text-white/80 mt-1">
+                  Across {loans.length} active EMI plan{loans.length > 1 ? "s" : ""}
+                </p>
+              </div>
+
               <button
                 onClick={() => setIsAddLoanOpen(true)}
-                className="text-xs font-semibold text-[#1E5BFF] hover:underline flex items-center space-x-1"
+                className="py-2.5 px-4 bg-[#121316] hover:bg-black text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all"
               >
-                <Plus size={14} />
-                <span>Add EMI Plan</span>
+                + Add plan
               </button>
             </div>
 
-            {loans.map((loan) => {
-              const loanInsts = installments.filter((i) => i.loanId === loan.id);
-              const paidInsts = loanInsts.filter((i) => i.status === "paid");
-              const nextDue = loanInsts.find((i) => i.status !== "paid");
-              const totalPaidPaise = loanInsts.reduce(
-                (sum, i) => addPaise(sum, i.paidAmountPaise),
-                0
-              );
-              const totalLoanPaise = loan.installmentAmountPaise * loan.totalInstallments;
-              const pct = totalLoanPaise > 0 ? Math.round((totalPaidPaise / totalLoanPaise) * 100) : 0;
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-sm font-bold text-[#0B1D3A]">Active Plans ({loans.length})</h3>
+              </div>
 
-              return (
-                <div
-                  key={loan.id}
-                  className="bg-white border border-[#E7EBF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-[#0B1D3A]">{loan.name}</h3>
-                      <p className="text-xs text-slate-400">{loan.lender}</p>
-                    </div>
-                    <span className="text-sm font-bold text-[#0B1D3A] tabular-nums">
-                      {formatPaise(loan.installmentAmountPaise)}/mo
-                    </span>
-                  </div>
+              {loans.map((loan) => {
+                const loanInsts = installments.filter((i) => i.loanId === loan.id);
+                const paidInsts = loanInsts.filter((i) => i.status === "paid");
+                const nextDue = loanInsts.find((i) => i.status !== "paid");
+                const totalPaidPaise = loanInsts.reduce(
+                  (sum, i) => addPaise(sum, i.paidAmountPaise),
+                  0
+                );
+                const totalLoanPaise = loan.installmentAmountPaise * loan.totalInstallments;
+                const pct = totalLoanPaise > 0 ? Math.round((totalPaidPaise / totalLoanPaise) * 100) : 0;
 
-                  {/* Progress */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs text-slate-500 font-medium">
-                      <span>{paidInsts.length} of {loan.totalInstallments} paid</span>
-                      <span>{pct}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-[#1E5BFF] h-full rounded-full transition-all"
-                        style={{ width: `${Math.min(100, pct)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {nextDue && (
-                    <div className="pt-2 flex items-center justify-between border-t border-[#E7EBF2]">
+                return (
+                  <div
+                    key={loan.id}
+                    className="bg-[#EEF3FF] p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] space-y-3"
+                  >
+                    <div className="flex items-start justify-between">
                       <div>
-                        <span className="text-[11px] text-slate-400 block font-medium">Next Due</span>
-                        <span className="text-xs font-semibold text-[#0B1D3A]">
-                          {formatDateReadable(nextDue.dueDate)}
-                        </span>
+                        <h4 className="text-sm font-bold text-[#0B1D3A]">{loan.name}</h4>
+                        <p className="text-xs text-slate-400">{loan.lender}</p>
                       </div>
-                      <button
-                        onClick={() => handleOpenPayInstallment(nextDue)}
-                        className="py-1.5 px-3 bg-[#1E5BFF] hover:bg-[#1546CC] text-white text-xs font-semibold rounded-lg shadow-2xs"
-                      >
-                        Pay EMI
-                      </button>
+                      <span className="text-sm font-extrabold text-[#0B1D3A] tabular-nums">
+                        {formatPaise(loan.installmentAmountPaise)}/mo
+                      </span>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+
+                    {/* Progress */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-slate-500 font-medium">
+                        <span>{paidInsts.length} of {loan.totalInstallments} paid</span>
+                        <span className="font-bold text-[#0047FF]">{pct}%</span>
+                      </div>
+                      <div className="w-full bg-white/80 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-[#0047FF] h-full rounded-full transition-all"
+                          style={{ width: `${Math.min(100, pct)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {nextDue && (
+                      <div className="pt-2 flex items-center justify-between border-t border-white/80">
+                        <div>
+                          <span className="text-[11px] text-slate-400 block font-medium">Next Due</span>
+                          <span className="text-xs font-bold text-[#0B1D3A]">
+                            {formatDateReadable(nextDue.dueDate)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleOpenPayInstallment(nextDue)}
+                          className="py-2 px-3.5 bg-[#0047FF] hover:bg-[#0038D1] text-white text-xs font-bold rounded-xl shadow-xs active:scale-95 transition-all"
+                        >
+                          Pay EMI
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
-
-        {/* Supporting info: "Why add EMI plans?" */}
-        <section aria-label="Why add EMI plans?" className="space-y-3 pt-2">
-          <h3 className="text-sm font-bold text-[#0B1D3A]">Why add EMI plans?</h3>
-
-          <div className="space-y-3">
-            {/* Feature 1 */}
-            <div className="flex items-start space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center shrink-0">
-                <Calendar size={18} strokeWidth={2.2} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[#0B1D3A]">Repayment schedule</p>
-                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                  Keep track of upcoming due dates in one place.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="flex items-start space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center shrink-0">
-                <BarChart2 size={18} strokeWidth={2.2} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[#0B1D3A]">Payment progress</p>
-                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                  See how much you&apos;ve paid and what&apos;s remaining.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="flex items-start space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center shrink-0">
-                <FileText size={18} strokeWidth={2.2} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[#0B1D3A]">Partial payments</p>
-                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                  Record part payments and stay updated on your loan status.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Add EMI Loan Modal */}
         {isAddLoanOpen && (

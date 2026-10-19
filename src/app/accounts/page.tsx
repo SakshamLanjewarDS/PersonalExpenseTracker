@@ -13,7 +13,11 @@ import {
   Trash2,
   Settings,
   AlertTriangle,
+  Clock,
+  LayoutGrid,
+  Landmark,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/AppProviders";
 import { FinanceRepository } from "@/lib/offline/repository";
 import { Account, Transaction, AccountType } from "@/types/database";
@@ -21,6 +25,8 @@ import { formatPaise, parseRupeesToPaise, addPaise } from "@/lib/money/paise";
 import { deriveAccountBalance } from "@/lib/services/financeService";
 import { getTodayDateString } from "@/lib/dates/dates";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { NotchedFinancialCard } from "@/components/ui/NotchedFinancialCard";
+import { QuickActionGrid } from "@/components/ui/QuickActionGrid";
 
 export default function AccountsPage() {
   const { userId, refreshKey, triggerRefresh } = useApp();
@@ -247,75 +253,103 @@ export default function AccountsPage() {
     }
   };
 
+  const router = useRouter();
+
+  const totalAccountSpendingPaise = accountsWithBalances.reduce(
+    (sum, a) => addPaise(sum, a.totalExpensesPaise),
+    0
+  );
+
+  const accountQuickActions = [
+    {
+      id: "transfer",
+      label: "Transfer",
+      icon: ArrowRightLeft,
+      onClick: () => handleOpenTransfer(),
+    },
+    {
+      id: "edit",
+      label: "Edit",
+      icon: Pencil,
+      onClick: () => {
+        if (accounts.length > 0) handleOpenEditAccount(accounts[0]);
+      },
+    },
+    {
+      id: "history",
+      label: "History",
+      icon: Clock,
+      onClick: () => router.push("/transactions"),
+    },
+    {
+      id: "more",
+      label: "More",
+      icon: LayoutGrid,
+      onClick: () => setIsCleanSlateConfirmOpen(true),
+    },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F7FA]">
-      <AppHeader title="Accounts" showBack={true} backHref="/" action="settings" showMonthSelector={true} />
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F8FC]">
+      {/* 1. Header matching Image 3 Left */}
+      <AppHeader
+        title="Accounts"
+        subtitle="Manage your accounts"
+        showBack={true}
+        backHref="/"
+        action="settings"
+        showMonthSelector={true}
+        monthPlacement="right"
+      />
 
-      <main className="flex-1 px-4 py-4 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
-        {/* 1. Total Account Balance Card */}
+      <main className="flex-1 px-4 py-3 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
+        {/* 2. Total Balance Notched Card matching Image 3 Left */}
         <section aria-label="Total Account Balance">
-          <div className="bg-white border border-[#E7EBF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] space-y-4">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                TOTAL ACCOUNT BALANCE
-              </p>
-              <p className="text-3xl sm:text-4xl font-extrabold text-[#0B1D3A] tracking-tight tabular-nums mt-1">
-                {formatPaise(totalLiquidPaise)}
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Balances are based on your recorded account activity.
-              </p>
-            </div>
-
-            {/* Two Action Buttons */}
-            <div className="flex items-center space-x-2.5 pt-1">
-              <button
-                onClick={() => setIsAddAccountOpen(true)}
-                className="flex-1 py-3 px-4 bg-[#1E5BFF] hover:bg-[#1546CC] text-white font-semibold text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 transition-all"
-              >
-                <Plus size={16} strokeWidth={2.4} />
-                <span>Add account</span>
-              </button>
-
-              <button
-                onClick={() => handleOpenTransfer()}
-                className="flex-1 py-3 px-4 bg-white border border-[#E7EBF2] hover:bg-slate-50 text-[#0B1D3A] font-semibold text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-2xs active:scale-95 transition-all"
-              >
-                <ArrowRightLeft size={16} strokeWidth={2.2} />
-                <span>Transfer</span>
-              </button>
-            </div>
-          </div>
+          <NotchedFinancialCard
+            title="TOTAL BALANCE"
+            amount={totalLiquidPaise}
+            subtitle="Reflects all bank accounts and cash in hand."
+            stat1Label="Accounts"
+            stat1Value={accounts.length.toString()}
+            stat2Label="spending"
+            stat2Value={formatPaise(totalAccountSpendingPaise)}
+            actionText="Add account"
+            onActionClick={() => setIsAddAccountOpen(true)}
+          />
         </section>
 
-        {/* 2. Manage Sample Data Entry */}
-        <button
-          onClick={() => setIsCleanSlateConfirmOpen(true)}
-          className="w-full bg-white border border-[#E7EBF2] p-4 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] flex items-center justify-between hover:border-slate-300 transition-colors text-left"
-        >
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
-              <Settings size={16} strokeWidth={2} />
-            </div>
-            <span className="text-xs font-semibold text-[#0B1D3A]">Manage sample data</span>
-          </div>
-          <span className="text-slate-400 text-sm font-semibold">›</span>
-        </button>
+        {/* 3. Four-Column Quick-Action Grid */}
+        <section aria-label="Quick Actions">
+          <QuickActionGrid items={accountQuickActions} />
+        </section>
 
-        {/* 3. Account Cards List */}
-        <section aria-label="Accounts List" className="space-y-3 pt-1">
+        {/* 4. Accounts List Section matching Image 3 Left */}
+        <section aria-label="Accounts List" className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-bold text-[#0B1D3A]">Accounts</h2>
+            <button
+              onClick={() => setIsAddAccountOpen(true)}
+              className="text-xs font-bold text-[#0047FF] hover:underline"
+            >
+              See all &gt;
+            </button>
+          </div>
+
           {accountsWithBalances.map(({ account, balancePaise, totalExpensesPaise }) => {
             const IconComponent = getAccountIcon(account.type);
-            const isMain = account.type === "salary" || account.name.toLowerCase().includes("salary");
+            const isMain =
+              account.type === "salary" ||
+              account.name.toLowerCase().includes("salary");
 
             return (
               <div
                 key={account.id}
-                className="bg-white border border-[#E7EBF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] space-y-3"
+                className="bg-[#EEF3FF] p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] space-y-3"
               >
+                {/* Top Row: Icon + Name/Badge + Menu */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
                       <IconComponent size={20} strokeWidth={2.2} />
                     </div>
                     <div className="min-w-0">
@@ -323,64 +357,58 @@ export default function AccountsPage() {
                         <h3 className="text-sm font-bold text-[#0B1D3A] truncate">
                           {account.name}
                         </h3>
-                        {isMain && (
-                          <span className="bg-[#EFF5FF] text-[#1E5BFF] text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0">
-                            Main account
+                        {isMain ? (
+                          <span className="bg-white/90 text-[#0047FF] border border-[#0047FF]/20 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                            Main Salary
                           </span>
-                        )}
-                        {account.type === "savings" && (
-                          <span className="bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0">
+                        ) : account.type === "savings" ? (
+                          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
                             Savings
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <p className="text-xs text-slate-400 mt-0.5 capitalize">
-                        {account.type === "salary" ? "Salary account" : `${account.type} account`}
+                        {account.type === "salary"
+                          ? "Salary Account"
+                          : `${account.type} Account`}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-1 shrink-0">
-                    <button
-                      onClick={() => handleOpenEditAccount(account)}
-                      className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-slate-100 rounded-lg transition-colors"
-                      aria-label="Edit Account"
-                    >
-                      <Pencil size={15} strokeWidth={2.2} />
-                    </button>
-                    <button
-                      onClick={() => handleOpenEditAccount(account)}
-                      className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-slate-100 rounded-lg transition-colors"
-                      aria-label="More options"
-                    >
-                      <MoreVertical size={16} strokeWidth={2.2} />
-                    </button>
+                  <button
+                    onClick={() => handleOpenEditAccount(account)}
+                    className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-white/80 rounded-lg transition-colors shrink-0"
+                    aria-label="Account Options"
+                  >
+                    <MoreVertical size={18} strokeWidth={2.2} />
+                  </button>
+                </div>
+
+                {/* Bottom Row: Current Balance (Left) & Opening / Spending (Right) */}
+                <div className="flex items-end justify-between pt-1">
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-medium">
+                      Current Balance
+                    </span>
+                    <span className="text-xl font-extrabold text-[#0B1D3A] tabular-nums block mt-0.5">
+                      {formatPaise(balancePaise)}
+                    </span>
+                  </div>
+
+                  <div className="text-right text-xs">
+                    <p className="text-[11px] text-slate-400">
+                      Opening: <span className="font-semibold text-slate-600">{formatPaise(account.openingBalancePaise)}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Account spending: <span className="font-semibold text-slate-600">{formatPaise(totalExpensesPaise)}</span>
+                    </p>
                   </div>
                 </div>
 
-                {/* Current Balance */}
-                <div>
-                  <p className="text-xs font-medium text-slate-500">Current balance</p>
-                  <p className="text-2xl font-bold text-[#0B1D3A] tabular-nums mt-0.5">
-                    {formatPaise(balancePaise)}
-                  </p>
-                </div>
-
-                {/* Bottom Row: Opening balance and Spent from account */}
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E7EBF2] text-xs">
-                  <div>
-                    <span className="text-slate-400 block font-medium">Opening balance</span>
-                    <span className="font-semibold text-[#0B1D3A] tabular-nums">
-                      {formatPaise(account.openingBalancePaise)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Spent from account</span>
-                    <span className="font-semibold text-[#0B1D3A] tabular-nums">
-                      {formatPaise(totalExpensesPaise)}
-                    </span>
-                  </div>
-                </div>
+                {/* Footnote */}
+                <p className="text-[10px] text-slate-400 pt-1 border-t border-white/60">
+                  Balances reflect recorded account activity.
+                </p>
               </div>
             );
           })}

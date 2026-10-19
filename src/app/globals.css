@@ -5,15 +5,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #F7F7FA;
+  --background: #F7F8FC;
   --surface: #FFFFFF;
   --navy: #0B1D3A;
-  --primary-blue: #1E5BFF;
+  --primary-blue: #0047FF;
   --light-blue: #5FA8FF;
   --border-pale: #E7EBF2;
-  --primary: #1E5BFF;
-  --primary-hover: #1546CC;
-  --primary-subtle: #EFF5FF;
+  --primary: #0047FF;
+  --primary-hover: #0038D1;
+  --primary-subtle: #EEF3FF;
+  --dark-action: #121316;
   --primary-text: #0B1D3A;
   --secondary-text: #64748B;
   --warning: #B45309;

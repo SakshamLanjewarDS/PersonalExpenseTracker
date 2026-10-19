@@ -8,7 +8,11 @@ import {
   X,
   ChevronRight,
   LayoutGrid,
+  PieChart,
+  Clock,
+  MoreHorizontal,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/AppProviders";
 import { FinanceRepository } from "@/lib/offline/repository";
 import {
@@ -22,6 +26,8 @@ import { formatPaise, parseRupeesToPaise, addPaise, subPaise } from "@/lib/money
 import { deriveCategoryBudget } from "@/lib/services/financeService";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { NotchedFinancialCard } from "@/components/ui/NotchedFinancialCard";
+import { QuickActionGrid } from "@/components/ui/QuickActionGrid";
 
 export default function BudgetsPage() {
   const { userId, selectedMonth, refreshKey, triggerRefresh } = useApp();
@@ -242,83 +248,77 @@ export default function BudgetsPage() {
     timeZone: "UTC",
   }).format(monthDate);
 
+  const router = useRouter();
+
+  const budgetActions = [
+    {
+      id: "allocate",
+      label: "Allocate",
+      icon: PieChart,
+      onClick: () => {
+        if (categories.length > 0) {
+          handleOpenEditAlloc(categories[0]);
+        }
+      },
+    },
+    {
+      id: "reallocate",
+      label: "Reallocate",
+      icon: ArrowRightLeft,
+      onClick: () => handleOpenMove(),
+    },
+    {
+      id: "categories",
+      label: "Categories",
+      icon: LayoutGrid,
+      onClick: () => setActiveTab("all"),
+    },
+    {
+      id: "history",
+      label: "History",
+      icon: Clock,
+      onClick: () => router.push("/transactions"),
+    },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F7FA]">
-      <AppHeader title="Budgets & Envelopes" showBack={true} backHref="/" action="none" showMonthSelector={true} />
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F8FC]">
+      {/* 1. Header matching Image 1 Middle */}
+      <AppHeader
+        greeting="Hi Saksham!"
+        action="settings"
+        showMonthSelector={true}
+        monthPlacement="subtitle"
+      />
 
-      <main className="flex-1 px-4 py-4 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
-        {/* 1. Total Salary (SBI) Card */}
+      <main className="flex-1 px-4 py-3 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
+        {/* 2. Total Salary Notched Card matching Image 1 Middle */}
         <section aria-label="Salary Pool Card">
-          <div className="bg-white border border-[#E7EBF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] space-y-3.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center shrink-0">
-                  <Wallet size={20} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <h2 className="text-sm font-bold text-[#0B1D3A]">Total Salary (SBI)</h2>
-                  <p className="text-xs text-slate-400">Monthly income • {monthName}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsEditSalaryOpen(true)}
-                className="px-3 py-1 bg-[#EFF5FF] text-[#1E5BFF] hover:bg-blue-100 text-xs font-semibold rounded-lg transition-colors"
-              >
-                Edit
-              </button>
-            </div>
-
-            {/* Big Amount */}
-            <div>
-              <p className="text-3xl font-extrabold text-[#0B1D3A] tracking-tight tabular-nums">
-                {formatPaise(monthlySalaryPaise)}
-              </p>
-            </div>
-
-            {/* Two stats boxes */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1 border-t border-[#E7EBF2]">
-              <div className="p-2.5 bg-slate-50/80 rounded-xl">
-                <p className="text-xs font-medium text-slate-500">Allocated to budgets</p>
-                <p className="text-base font-bold text-[#0B1D3A] tabular-nums mt-0.5">
-                  {formatPaise(totalAllocated)}
-                </p>
-                <p className="text-[11px] text-slate-400">Across {fundedBudgets.length} categories</p>
-              </div>
-
-              <div className="p-2.5 bg-slate-50/80 rounded-xl">
-                <p className="text-xs font-medium text-slate-500">Unallocated</p>
-                <p
-                  className={`text-base font-bold tabular-nums mt-0.5 ${
-                    unallocatedSalaryPaise < 0 ? "text-red-600" : "text-[#1E5BFF]"
-                  }`}
-                >
-                  {formatPaise(unallocatedSalaryPaise)}
-                </p>
-                <p className="text-[11px] text-slate-400">Available to assign</p>
-              </div>
-            </div>
-
-            {/* Reallocate Button */}
-            <button
-              onClick={() => handleOpenMove()}
-              className="w-full py-2.5 px-4 bg-[#EFF5FF] hover:bg-blue-100/70 text-[#1E5BFF] font-semibold text-xs rounded-xl flex items-center justify-between transition-colors"
-            >
-              <span className="flex items-center space-x-1.5">
-                <ArrowRightLeft size={14} strokeWidth={2.4} />
-                <span>Reallocate Between Envelopes</span>
-              </span>
-              <ChevronRight size={15} strokeWidth={2.4} />
-            </button>
-          </div>
+          <NotchedFinancialCard
+            title="Total Salary"
+            amount={monthlySalaryPaise}
+            subtitle="Monthly fixed income"
+            stat1Label="Allocated"
+            stat1Value={formatPaise(totalAllocated)}
+            stat2Label="Unallocated"
+            stat2Value={formatPaise(unallocatedSalaryPaise)}
+            actionText="Edit salary"
+            onActionClick={() => setIsEditSalaryOpen(true)}
+          />
         </section>
 
-        {/* 2. Tabs: Funded (count) & All Categories (count) */}
-        <div className="bg-slate-200/60 p-1 rounded-xl flex items-center">
+        {/* 3. Four-Column Quick-Action Grid */}
+        <section aria-label="Quick Actions">
+          <QuickActionGrid items={budgetActions} />
+        </section>
+
+        {/* 4. Segmented Control: Funded (X) & All (X) */}
+        <div className="bg-[#EEF3FF] p-1 rounded-2xl flex items-center">
           <button
             onClick={() => setActiveTab("funded")}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
               activeTab === "funded"
-                ? "bg-white text-[#1E5BFF] shadow-xs"
+                ? "bg-[#0047FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-[#0B1D3A]"
             }`}
           >
@@ -326,18 +326,18 @@ export default function BudgetsPage() {
           </button>
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
               activeTab === "all"
-                ? "bg-white text-[#1E5BFF] shadow-xs"
+                ? "bg-[#0047FF] text-white shadow-xs"
                 : "text-slate-600 hover:text-[#0B1D3A]"
             }`}
           >
-            All Categories ({categories.length})
+            All ({categories.length})
           </button>
         </div>
 
-        {/* 3. Category Envelopes List */}
-        <section aria-label="Category Envelopes" className="space-y-2.5">
+        {/* 5. Category Cards List matching Image 1 Middle */}
+        <section aria-label="Category Envelopes" className="space-y-3">
           {displayedBudgets.map(({ category, availablePaise, netSpentPaise, allocatedPaise }) => {
             const pct = allocatedPaise > 0 ? Math.round((netSpentPaise / allocatedPaise) * 100) : 0;
             const isOver = availablePaise < 0;
@@ -346,44 +346,61 @@ export default function BudgetsPage() {
             return (
               <div
                 key={category.id}
-                className="bg-white border border-[#E7EBF2] p-4 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] space-y-2.5"
+                className="bg-[#EEF3FF] p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] space-y-3"
               >
-                <div className="flex items-start justify-between">
+                {/* Top: Icon + Name + Percentage */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 min-w-0">
-                    <CategoryIcon iconName={category.icon} size={18} />
-                    <div className="min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-sm font-bold text-[#0B1D3A] truncate">
-                          {category.name}
-                        </h3>
-                        {isOver && (
-                          <span className="bg-red-50 text-red-600 font-semibold text-[11px] px-2 py-0.5 rounded-full shrink-0">
-                            {formatPaise(Math.abs(availablePaise))} over budget
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {isNotFunded
-                          ? "Not funded"
-                          : `Spent: ${formatPaise(netSpentPaise)} of ${formatPaise(allocatedPaise)}`}
-                      </p>
+                    <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
+                      <CategoryIcon iconName={category.icon} size={18} className="!bg-transparent" />
                     </div>
+                    <h3 className="text-sm font-bold text-[#0B1D3A] truncate">
+                      {category.name}
+                    </h3>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenEditAlloc(category, allocatedPaise)}
-                    className="px-2.5 py-1 bg-[#EFF5FF] hover:bg-blue-100 text-[#1E5BFF] text-xs font-semibold rounded-lg flex items-center space-x-1 shrink-0 transition-colors"
+                  <span
+                    className={`text-xs font-bold tabular-nums shrink-0 ${
+                      isOver ? "text-red-600" : "text-slate-500"
+                    }`}
                   >
-                    <Pencil size={12} strokeWidth={2.4} />
-                    <span>Edit</span>
-                  </button>
+                    {isNotFunded ? "0%" : `${pct}%`}
+                  </span>
+                </div>
+
+                {/* Middle: 3 Columns: Allocated | Spent | Remaining */}
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-medium">Allocated</span>
+                    <span className="font-bold text-[#0B1D3A] tabular-nums">
+                      {formatPaise(allocatedPaise)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-medium">Spent</span>
+                    <span className="font-bold text-[#0B1D3A] tabular-nums">
+                      {formatPaise(netSpentPaise)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-medium">Remaining</span>
+                    <span
+                      className={`font-bold tabular-nums ${
+                        isOver ? "text-red-600" : "text-emerald-600"
+                      }`}
+                    >
+                      {isOver
+                        ? `- ${formatPaise(Math.abs(availablePaise))}`
+                        : formatPaise(availablePaise)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-white/80 h-2 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
-                      isOver ? "bg-red-500" : "bg-[#1E5BFF]"
+                      isOver ? "bg-red-500" : "bg-[#0047FF]"
                     }`}
                     style={{
                       width: `${isNotFunded ? 0 : Math.min(100, Math.max(0, pct))}%`,
@@ -391,39 +408,51 @@ export default function BudgetsPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">
-                    {isNotFunded ? "0% spent" : `${pct}% spent`}
-                  </span>
+                {/* Footer: Over budget text / Left text + Edit Action */}
+                <div className="flex items-center justify-between pt-0.5 text-xs">
                   <span
-                    className={`font-bold tabular-nums ${
-                      isOver ? "text-red-600" : "text-[#0B1D3A]"
+                    className={`font-medium ${
+                      isOver
+                        ? "text-red-500"
+                        : isNotFunded
+                        ? "text-slate-400"
+                        : "text-emerald-600"
                     }`}
                   >
                     {isOver
-                      ? `- ${formatPaise(Math.abs(availablePaise))}`
+                      ? `${formatPaise(Math.abs(availablePaise))} over budget`
+                      : isNotFunded
+                      ? "Not funded"
                       : `${formatPaise(availablePaise)} left`}
                   </span>
+
+                  <button
+                    onClick={() => handleOpenEditAlloc(category, allocatedPaise)}
+                    className="text-[#0047FF] font-bold text-xs hover:underline flex items-center space-x-1"
+                  >
+                    <Pencil size={12} strokeWidth={2.4} />
+                    <span>Edit</span>
+                  </button>
                 </div>
               </div>
             );
           })}
 
-          {/* Unfunded Categories Banner when in Funded Tab */}
+          {/* Unfunded Categories Banner matching Image 1 Middle */}
           {activeTab === "funded" && unfundedBudgets.length > 0 && (
             <button
               onClick={() => setActiveTab("all")}
-              className="w-full bg-white border border-[#E7EBF2] p-4 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] flex items-center justify-between hover:border-slate-300 transition-colors text-left"
+              className="w-full bg-[#EEF3FF] hover:bg-[#E4EDFF] transition-colors p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] flex items-center justify-between text-left"
             >
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-[#EFF5FF] text-[#1E5BFF] flex items-center justify-center shrink-0">
-                  <LayoutGrid size={20} strokeWidth={2.2} />
+                <div className="w-10 h-10 rounded-xl bg-white text-slate-500 flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
+                  <MoreHorizontal size={20} strokeWidth={2.2} />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-[#0B1D3A]">
                     {unfundedBudgets.length} categories not funded
                   </p>
-                  <p className="text-xs text-slate-400">Allocate amounts to start tracking</p>
+                  <p className="text-xs text-slate-400">Allocate from your salary pool</p>
                 </div>
               </div>
               <ChevronRight size={18} className="text-slate-400" />

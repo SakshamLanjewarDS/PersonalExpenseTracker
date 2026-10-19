@@ -10,6 +10,9 @@ import {
   Trash2,
   X,
   Undo2,
+  Calendar,
+  Tag,
+  CreditCard,
 } from "lucide-react";
 import { useApp } from "@/components/providers/AppProviders";
 import { FinanceRepository } from "@/lib/offline/repository";
@@ -18,6 +21,8 @@ import { formatPaise, addPaise } from "@/lib/money/paise";
 import { formatDateReadable, getPeriodBoundaries, PeriodType } from "@/lib/dates/dates";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { CompactTransactionRow } from "@/components/ui/CompactTransactionRow";
+import { QuickActionGrid } from "@/components/ui/QuickActionGrid";
 
 export default function TransactionsPage() {
   const { userId, selectedMonth, refreshKey, triggerRefresh } = useApp();
@@ -162,18 +167,48 @@ export default function TransactionsPage() {
     setIsFilterSheetOpen(false);
   };
 
+  const filterTiles = [
+    {
+      id: "date",
+      label: "Date",
+      icon: Calendar,
+      onClick: () => setIsFilterSheetOpen(true),
+    },
+    {
+      id: "type",
+      label: "Type",
+      icon: Tag,
+      onClick: () => setIsFilterSheetOpen(true),
+    },
+    {
+      id: "category",
+      label: "Category",
+      icon: SlidersHorizontal,
+      onClick: () => setIsFilterSheetOpen(true),
+    },
+    {
+      id: "account",
+      label: "Account",
+      icon: CreditCard,
+      onClick: () => setIsFilterSheetOpen(true),
+    },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F7FA]">
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F7F8FC]">
+      {/* 1. Header matching Image 3 Right */}
       <AppHeader
         title="Transactions"
+        subtitle="View and manage your spending"
         showBack={true}
         backHref="/"
         action="overflow"
         onOverflowClick={() => setIsFilterSheetOpen(true)}
         showMonthSelector={true}
+        monthPlacement="right"
       />
 
-      <main className="flex-1 px-4 py-4 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
+      <main className="flex-1 px-4 py-3 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
         {/* Undo notification */}
         {lastDeletedTx && (
           <div className="p-3 bg-slate-900 text-white rounded-xl text-xs flex items-center justify-between shadow-md">
@@ -188,100 +223,59 @@ export default function TransactionsPage() {
           </div>
         )}
 
-        {/* 1. Search Bar */}
+        {/* 1. Search Bar matching Image 3 Right */}
         <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search merchant, notes, amount..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-[#E7EBF2] pl-10 pr-4 py-2.5 text-xs text-[#0B1D3A] rounded-xl shadow-[0_1px_2px_rgba(11,29,58,0.03)] focus:outline-[#1E5BFF] placeholder:text-slate-400"
+            className="w-full bg-[#EEF3FF] border-0 pl-11 pr-4 py-3 text-xs text-[#0B1D3A] rounded-2xl shadow-[0_1px_2px_rgba(0,56,255,0.02)] focus:outline-[#0047FF] placeholder:text-slate-400"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
-              <X size={14} />
+              <X size={15} />
             </button>
           )}
         </div>
 
-        {/* 2. Filter Pills Row */}
-        <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-0.5">
-          {/* Period selector pill */}
-          <div className="relative shrink-0">
-            <select
-              value={periodPreset}
-              onChange={(e) => setPeriodPreset(e.target.value as PeriodType)}
-              className="appearance-none bg-white border border-[#E7EBF2] text-[#0B1D3A] text-xs font-semibold pl-3 pr-7 py-2 rounded-xl shadow-[0_1px_2px_rgba(11,29,58,0.03)] focus:outline-[#1E5BFF]"
-            >
-              <option value="this-month">This month</option>
-              <option value="today">Today</option>
-              <option value="this-week">This week</option>
-              <option value="this-year">This year</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          </div>
+        {/* 2. Four Filter Tiles matching Image 3 Right */}
+        <section aria-label="Filter Controls">
+          <QuickActionGrid items={filterTiles} />
+        </section>
 
-          {/* Type selector pill */}
-          <div className="relative shrink-0">
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="appearance-none bg-white border border-[#E7EBF2] text-[#0B1D3A] text-xs font-semibold pl-3 pr-7 py-2 rounded-xl shadow-[0_1px_2px_rgba(11,29,58,0.03)] focus:outline-[#1E5BFF]"
-            >
-              <option value="all">All types</option>
-              <option value="expense">Expenses</option>
-              <option value="income">Income</option>
-              <option value="transfer">Transfers</option>
-              <option value="refund">Refunds</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          </div>
-
-          {/* More Filters button */}
-          <button
-            onClick={() => setIsFilterSheetOpen(true)}
-            className={`shrink-0 flex items-center space-x-1.5 px-3 py-2 border rounded-xl text-xs font-semibold shadow-[0_1px_2px_rgba(11,29,58,0.03)] transition-colors ${
-              selectedCategory !== "all" || selectedAccount !== "all"
-                ? "bg-[#EFF5FF] border-[#1E5BFF] text-[#1E5BFF]"
-                : "bg-white border-[#E7EBF2] text-[#0B1D3A] hover:bg-slate-50"
-            }`}
-          >
-            <SlidersHorizontal size={14} strokeWidth={2.2} />
-            <span>Filters</span>
-          </button>
-        </div>
-
-        {/* 3. Summary Card: Total spent & Transactions */}
+        {/* 3. Summary Card: Total spent & Transactions matching Image 3 Right */}
         <section aria-label="Transaction Totals">
-          <div className="bg-white border border-[#E7EBF2] p-4 rounded-2xl shadow-[0_1px_3px_rgba(11,29,58,0.03)] grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Total spent</p>
-              <p className="text-2xl font-bold text-[#0B1D3A] tracking-tight tabular-nums mt-0.5">
+          <div className="bg-[#EEF3FF] p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-[11px] font-medium text-slate-500">Total Spent</p>
+              <p className="text-2xl font-extrabold text-[#0B1D3A] tracking-tight tabular-nums mt-0.5">
                 {formatPaise(totalFilteredSpentPaise)}
               </p>
             </div>
-            <div>
-              <p className="text-xs font-medium text-slate-500">Transactions</p>
-              <p className="text-2xl font-bold text-[#0B1D3A] tracking-tight tabular-nums mt-0.5">
+            <div className="h-8 w-px bg-slate-300/60 mx-4" />
+            <div className="flex-1 pl-2">
+              <p className="text-[11px] font-medium text-slate-500">Transactions</p>
+              <p className="text-2xl font-extrabold text-[#0B1D3A] tracking-tight tabular-nums mt-0.5">
                 {filteredTransactions.length}
               </p>
             </div>
           </div>
         </section>
 
-        {/* 4. Date Grouped Transactions */}
+        {/* 4. Date Grouped Transactions matching Image 3 Right */}
         <section aria-label="Transaction List" className="space-y-4 pt-1">
           {sortedDates.length === 0 ? (
-            <div className="bg-white border border-[#E7EBF2] p-8 rounded-2xl text-center space-y-2">
-              <p className="text-sm font-semibold text-[#0B1D3A]">No matching transactions</p>
+            <div className="bg-[#EEF3FF] p-8 rounded-[22px] text-center space-y-2">
+              <p className="text-sm font-bold text-[#0B1D3A]">No matching transactions</p>
               <p className="text-xs text-slate-400">Try adjusting your filters or search terms.</p>
               <button
                 onClick={handleResetFilters}
-                className="mt-2 px-4 py-2 bg-[#EFF5FF] text-[#1E5BFF] text-xs font-semibold rounded-xl hover:bg-blue-100"
+                className="mt-2 px-4 py-2 bg-[#0047FF] text-white text-xs font-semibold rounded-xl hover:bg-[#0038D1]"
               >
                 Reset Filters
               </button>
@@ -301,7 +295,7 @@ export default function TransactionsPage() {
               return (
                 <div key={dateKey} className="space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-semibold text-[#0B1D3A]">
+                    <span className="text-xs font-bold text-[#0B1D3A]">
                       {dateHeading}
                     </span>
                     <span className="text-xs font-semibold text-slate-500 tabular-nums">
@@ -313,57 +307,18 @@ export default function TransactionsPage() {
                     {group.transactions.map((tx) => {
                       const cat = categories.find((c) => c.id === tx.categoryId);
                       const acc = accounts.find((a) => a.id === tx.accountId);
-                      const isExpense = tx.type === "expense";
-                      const isIncome = tx.type === "income";
 
                       return (
-                        <div
+                        <CompactTransactionRow
                           key={tx.id}
-                          className="bg-white border border-[#E7EBF2] p-3.5 rounded-2xl flex items-center justify-between shadow-[0_1px_3px_rgba(11,29,58,0.03)] hover:border-slate-300 transition-colors"
-                        >
-                          <div className="flex items-center space-x-3 min-w-0">
-                            <CategoryIcon iconName={cat?.icon || "tag"} size={18} />
-                            <div className="min-w-0">
-                              <h4 className="text-sm font-bold text-[#0B1D3A] truncate">
-                                {cat?.name || tx.merchant || "Transaction"}
-                              </h4>
-                              <p className="text-xs text-slate-400">
-                                {acc?.name ? `${acc.name} • ` : ""}
-                                {tx.paymentMethod?.toUpperCase() || "UPI"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center space-x-2 shrink-0">
-                            <div className="text-right">
-                              <span
-                                className={`text-sm font-bold tabular-nums block ${
-                                  isExpense
-                                    ? "text-[#0B1D3A]"
-                                    : isIncome
-                                    ? "text-emerald-600"
-                                    : tx.type === "refund"
-                                    ? "text-purple-600"
-                                    : "text-[#1E5BFF]"
-                                }`}
-                              >
-                                {isExpense ? "- " : isIncome ? "+ " : ""}
-                                {formatPaise(tx.amountPaise)}
-                              </span>
-                              <span className="text-[11px] text-slate-400 capitalize">
-                                {tx.type}
-                              </span>
-                            </div>
-
-                            <button
-                              onClick={() => setSelectedTx(tx)}
-                              className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-slate-100 rounded-lg transition-colors"
-                              aria-label="Transaction Options"
-                            >
-                              <MoreVertical size={16} strokeWidth={2.2} />
-                            </button>
-                          </div>
-                        </div>
+                          transaction={tx}
+                          category={cat}
+                          account={acc}
+                          subtitle={`${acc?.name || "SBI"} • UPI`}
+                          rightAction="menu"
+                          onMenuClick={() => setSelectedTx(tx)}
+                          onClick={() => setSelectedTx(tx)}
+                        />
                       );
                     })}
                   </div>
