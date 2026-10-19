@@ -270,6 +270,15 @@ export class FinanceRepository {
     return entry;
   }
 
+  static async setAllocation(params: {
+    userId: string;
+    periodKey: string;
+    categoryId: string;
+    allocatedPaise: Paise;
+  }): Promise<BudgetAllocationEntry> {
+    return this.allocateBudget(params);
+  }
+
   static async getReallocations(userId: string, periodKey: string): Promise<CategoryReallocation[]> {
     return offlineDB.reallocations
       .where("userId")
@@ -486,6 +495,10 @@ export class FinanceRepository {
 
     await offlineDB.installments.bulkPut(schedule);
     return { loan, installments: schedule };
+  }
+
+  static async createLoanWithInstallments(loan: Loan): Promise<{ loan: Loan; installments: Installment[] }> {
+    return this.createLoanWithSchedule(loan);
   }
 
   static async getInstallments(userId: string, loanId?: string): Promise<Installment[]> {
