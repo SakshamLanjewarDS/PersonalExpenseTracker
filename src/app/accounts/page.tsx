@@ -175,7 +175,7 @@ export default function AccountsPage() {
         updatedAt: new Date().toISOString(),
       };
 
-      await FinanceRepository.saveAccount(newAcc);
+      await FinanceRepository.createAccount(newAcc);
       setIsAddAccountOpen(false);
       setNewAccName("");
       setNewAccBalanceStr("0");

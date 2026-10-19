@@ -106,11 +106,42 @@ export class FinanceRepository {
     return account;
   }
 
-  static async updateAccount(account: Account): Promise<Account> {
-    assertValidPaise(account.openingBalancePaise, "Opening balance");
-    account.updatedAt = new Date().toISOString();
-    await offlineDB.accounts.put(account);
-    return account;
+  static async saveAccount(account: Account): Promise<Account> {
+    return this.createAccount(account);
+  }
+
+  static async updateAccount(account: Account): Promise<Account>;
+  static async updateAccount(
+    userId: string,
+    accountId: string,
+    updates: Partial<Account>
+  ): Promise<Account | null>;
+  static async updateAccount(
+    accountOrUserId: Account | string,
+    accountId?: string,
+    updates?: Partial<Account>
+  ): Promise<Account | null> {
+    if (typeof accountOrUserId === "string") {
+      if (!accountId || !updates) return null;
+      const existing = await offlineDB.accounts.get(accountId);
+      if (!existing || existing.userId !== accountOrUserId) return null;
+      const updated: Account = {
+        ...existing,
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+      if (updated.openingBalancePaise !== undefined) {
+        assertValidPaise(updated.openingBalancePaise, "Opening balance");
+      }
+      await offlineDB.accounts.put(updated);
+      return updated;
+    } else {
+      const account = accountOrUserId;
+      assertValidPaise(account.openingBalancePaise, "Opening balance");
+      account.updatedAt = new Date().toISOString();
+      await offlineDB.accounts.put(account);
+      return account;
+    }
   }
 
   static async deleteAccount(userId: string, accountId: string): Promise<void> {
