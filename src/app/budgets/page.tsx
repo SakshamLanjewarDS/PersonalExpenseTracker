@@ -176,7 +176,7 @@ export default function BudgetsPage() {
     }
   };
 
-  const handleOpenEditAlloc = (cat: Category, currentAllocatedPaise: number) => {
+  const handleOpenEditAlloc = (cat: Category, currentAllocatedPaise: number = 0) => {
     setEditingCat(cat);
     setAllocAmountStr((currentAllocatedPaise / 100).toString());
     setAllocError(null);
@@ -257,7 +257,10 @@ export default function BudgetsPage() {
       icon: PieChart,
       onClick: () => {
         if (categories.length > 0) {
-          handleOpenEditAlloc(categories[0]);
+          const firstCat = categories[0];
+          const alloc =
+            allocations.find((a) => a.categoryId === firstCat.id)?.allocatedPaise || 0;
+          handleOpenEditAlloc(firstCat, alloc);
         }
       },
     },

@@ -161,6 +161,7 @@ export default function PaymentsPage() {
     }
 
     try {
+      const now = new Date().toISOString();
       const loan: Loan = {
         id: `loan-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         userId,
@@ -169,10 +170,13 @@ export default function PaymentsPage() {
         installmentAmountPaise: instAmtPaise,
         totalInstallments: totalCount,
         historicalPaidCount: histCount,
+        startMonthKey: selectedMonth || now.slice(0, 7),
         dueDay: day,
+        linkedCategoryId: loanCategoryId || "",
         categoryId: loanCategoryId || undefined,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        isClosed: false,
+        createdAt: now,
+        updatedAt: now,
       };
 
       await FinanceRepository.createLoanWithInstallments(loan);

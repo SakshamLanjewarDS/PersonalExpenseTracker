@@ -152,6 +152,7 @@ export interface Loan {
   dueDay: number; // 1-31
   preferredAccountId?: string;
   linkedCategoryId: string;
+  categoryId?: string;
   principalPaise?: Paise;
   interestRateAnnual?: number;
   referenceNumber?: string;
