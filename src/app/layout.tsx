@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "PocketPlan — Personal Expense & Budget Planner",
   description: "Private, mobile-first personal finance application for disciplined envelope budgeting, recurring bills, and offline tracking.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
