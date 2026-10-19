@@ -206,7 +206,7 @@ export default function BudgetsPage() {
         userId,
         categoryId: editingCat.id,
         periodKey: selectedMonth,
-        allocatedAmountPaise: targetPaise,
+        allocatedPaise: targetPaise,
       });
 
       setIsEditAllocOpen(false);
