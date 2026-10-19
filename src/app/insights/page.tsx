@@ -22,6 +22,7 @@ import { CompactTransactionRow } from "@/components/ui/CompactTransactionRow";
 import { NotchedFinancialCard } from "@/components/ui/NotchedFinancialCard";
 
 export default function InsightsPage() {
+  const router = useRouter();
   const { userId, refreshKey } = useApp();
 
   // Period Selector: "today" (Day), "this-week" (Week), "this-month" (Month), "this-year" (Year)
@@ -130,9 +131,6 @@ export default function InsightsPage() {
       .sort((a, b) => b.amountPaise - a.amountPaise)
       .slice(0, 5);
   }, [periodTransactions]);
-
-  return (
-  const router = useRouter();
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F7F8FC]">

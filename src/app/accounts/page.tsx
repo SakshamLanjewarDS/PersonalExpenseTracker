@@ -311,7 +311,7 @@ export default function AccountsPage() {
             subtitle="Reflects all bank accounts and cash in hand."
             stat1Label="Accounts"
             stat1Value={accounts.length.toString()}
-            stat2Label="spending"
+            stat2Label="Account spending"
             stat2Value={formatPaise(totalAccountSpendingPaise)}
             actionText="Add account"
             onActionClick={() => setIsAddAccountOpen(true)}

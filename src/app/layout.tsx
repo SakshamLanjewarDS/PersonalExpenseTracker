@@ -34,8 +34,33 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Auto-purge stale service worker caches and unregister on localhost during development
+              if (typeof window !== 'undefined') {
+                if ('serviceWorker' in navigator && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                  navigator.serviceWorker.getRegistrations().then(function(regs) {
+                    for (var i = 0; i < regs.length; i++) {
+                      regs[i].unregister();
+                    }
+                  });
+                }
+                if ('caches' in window) {
+                  caches.keys().then(function(keys) {
+                    keys.forEach(function(k) {
+                      if (k !== 'pocketplan-v3') {
+                        caches.delete(k);
+                      }
+                    });
+                  });
+                }
+              }
+            `,
+          }}
+        />
       </head>
-      <body suppressHydrationWarning className="min-h-screen bg-[#F7F7FA] text-[#0B1D3A] antialiased">
+      <body suppressHydrationWarning className="min-h-screen bg-[#F7F8FC] text-[#0B1D3A] antialiased">
         <AppProviders>
           <div className="flex min-h-screen">
             <DesktopSidebar />

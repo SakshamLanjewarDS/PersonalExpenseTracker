@@ -186,7 +186,6 @@ export default function PaymentsPage() {
     }
   };
 
-  return (
   const totalMonthlyEMIPaise = loans.reduce(
     (sum, l) => addPaise(sum, l.installmentAmountPaise),
     0

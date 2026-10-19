@@ -164,10 +164,6 @@ export function QuickAddModal() {
       ? "Save transfer"
       : "Save refund";
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-white flex flex-col justify-between">
-      {/* Container max-w-md matching mobile shell */}
-      <div className="max-w-md mx-auto w-full flex-1 flex flex-col px-4 pt-3 pb-8 justify-between">
   const typeTiles = [
     { type: "expense" as TransactionType, label: "Expense", icon: CreditCard },
     { type: "income" as TransactionType, label: "Income", icon: ArrowDown },

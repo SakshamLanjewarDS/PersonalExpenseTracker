@@ -25,15 +25,15 @@ interface NotchedFinancialCardProps {
 }
 
 export function NotchedFinancialCard({
-  title = "Budget Remaining",
+  title = "TOTAL BALANCE",
   amount,
-  subtitle = "of ₹7,000 allocated",
+  subtitle = "Reflects all bank accounts and cash in hand.",
   topRightIcon,
-  stat1Label = "Spent",
+  stat1Label = "Accounts",
   stat1Value,
-  stat2Label = "used",
+  stat2Label = "Account spending",
   stat2Value,
-  actionText = "Add expense",
+  actionText = "Add account",
   actionIcon,
   onActionClick,
   // Legacy
@@ -51,125 +51,113 @@ export function NotchedFinancialCard({
         : amount
       : balancePaise !== undefined
       ? formatPaise(balancePaise)
-      : "₹0";
+      : "₹9,500";
 
   const displayStat1Val =
     stat1Value !== undefined
       ? stat1Value
-      : spentPaise !== undefined
-      ? formatPaise(spentPaise)
-      : undefined;
+      : "1";
 
   const displayStat2Val =
     stat2Value !== undefined
       ? stat2Value
-      : allocatedPaise !== undefined && spentPaise !== undefined && allocatedPaise > 0
-      ? `${Math.round((spentPaise / allocatedPaise) * 100)}%`
+      : spentPaise !== undefined
+      ? formatPaise(spentPaise)
       : undefined;
 
   const handleAction = onActionClick || onAddClick;
 
   return (
     <div className={`relative w-full select-none ${className}`}>
-      {/* 
-        The notched card is composed of:
-        - Top section: Full width deep blue (#0047FF), rounded top corners (26px)
-        - Bottom section:
-          - Left: Deep blue (#0047FF) containing supporting stats with divider
-          - Fillet: smooth inward concave corner
-          - Right: Recessed notch (transparent) containing the dark (#121316) action button
-      */}
-      <div className="relative rounded-[26px] overflow-hidden">
-        {/* Main Blue Card Top */}
-        <div className="bg-[#0047FF] text-white pt-5 px-5 pb-2">
-          {/* Top row: Title/Amount + Signal/Chart Icon */}
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-                {title}
+      {/* 1. Upper Blue Block: Title, Amount, Subtitle with rounded top and curved lower-right */}
+      <div
+        className="w-full bg-[#0047FF] text-white pt-5 px-5 pb-3.5 rounded-t-[26px] rounded-br-[24px] shadow-[0_8px_24px_rgba(0,71,255,0.2)]"
+        style={{ backgroundColor: "#0047FF" }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[11px] font-semibold text-white/80 uppercase tracking-wider">
+              {title}
+            </p>
+            <p className="text-3xl sm:text-[34px] font-extrabold tracking-tight tabular-nums text-white mt-1">
+              {displayAmount}
+            </p>
+            {subtitle && (
+              <p className="text-xs font-normal text-white/90 mt-1 max-w-[270px] leading-relaxed">
+                {subtitle}
               </p>
-              <p className="text-3xl sm:text-[34px] font-extrabold tracking-tight tabular-nums text-white mt-1">
-                {displayAmount}
-              </p>
-              {subtitle && (
-                <p className="text-xs font-medium text-white/80 mt-1">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-
-            {/* Top Right Icon (3-bar chart or custom) */}
-            <div className="text-white/80 pt-1">
-              {topRightIcon ? (
-                topRightIcon
-              ) : (
-                <div className="flex items-end space-x-1 h-5 pt-0.5" aria-hidden="true">
-                  <span className="w-1 h-2 bg-white/70 rounded-full" />
-                  <span className="w-1 h-3.5 bg-white/70 rounded-full" />
-                  <span className="w-1 h-5 bg-white rounded-full" />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom split: Left blue stats & Right recessed cutout with dark action button */}
-        <div className="flex items-end bg-transparent">
-          {/* Left blue segment with stats */}
-          <div className="flex-1 bg-[#0047FF] text-white px-5 pb-4 pt-2.5 rounded-bl-[26px]">
-            {displayStat1Val ? (
-              <div className="flex items-center space-x-4">
-                <div>
-                  <p className="text-[11px] font-medium text-white/70">{stat1Label}</p>
-                  <p className="text-sm font-bold tabular-nums text-white mt-0.5">
-                    {displayStat1Val}
-                  </p>
-                </div>
-
-                {displayStat2Val && (
-                  <>
-                    <div className="h-6 w-px bg-white/20 self-center" />
-                    <div>
-                      <p className="text-sm font-bold tabular-nums text-white">
-                        {displayStat2Val}
-                      </p>
-                      <p className="text-[11px] font-medium text-white/70">{stat2Label}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="h-6" />
             )}
           </div>
 
-          {/* Curved fillet connecting left blue to notch */}
-          <div className="w-5 h-12 bg-[#0047FF] relative shrink-0">
-            <div className="absolute inset-0 bg-[#F7F8FC] rounded-tl-[20px]" />
-          </div>
+          {topRightIcon && (
+            <div className="text-white/80 pt-1 shrink-0">{topRightIcon}</div>
+          )}
+        </div>
+      </div>
 
-          {/* Recessed Notch area on bottom right with the dark button */}
-          <div className="w-[142px] h-12 bg-transparent flex items-center justify-end pr-0.5 shrink-0 relative">
-            {/* Top-right fillet connecting top blue to right side */}
-            <div className="absolute -top-3 right-0 w-3 h-3 bg-[#0047FF]">
-              <div className="w-full h-full bg-[#F7F8FC] rounded-br-[12px]" />
+      {/* 2. Lower Section: Left Blue Stats & Right Recessed Cutout with Dark Button */}
+      <div className="relative flex items-center justify-between -mt-px">
+        {/* Left Blue Stats Container with Fillet on top-right */}
+        <div
+          className="relative bg-[#0047FF] text-white px-5 pt-2 pb-4 rounded-bl-[26px] rounded-br-[16px] flex items-center shrink-0 shadow-[0_8px_24px_rgba(0,71,255,0.15)]"
+          style={{ backgroundColor: "#0047FF" }}
+        >
+          <div className="flex items-center space-x-3.5">
+            <div>
+              <p className="text-[11px] font-medium text-white/70">{stat1Label}</p>
+              <p className="text-sm font-bold tabular-nums text-white mt-0.5">
+                {displayStat1Val}
+              </p>
             </div>
 
-            <button
-              type="button"
-              onClick={handleAction}
-              className="w-full h-11 bg-[#121316] hover:bg-black text-white rounded-2xl flex items-center justify-center space-x-1.5 font-bold text-xs shadow-[0_4px_12px_rgba(0,0,0,0.22)] active:scale-95 transition-transform touch-target"
-            >
-              {actionIcon ? (
-                actionIcon
-              ) : (
-                <Plus size={15} strokeWidth={2.8} />
-              )}
-              <span>{actionText}</span>
-            </button>
+            {displayStat2Val && (
+              <>
+                <div className="h-5 w-px bg-white/20 self-center" />
+                <div>
+                  <p className="text-[11px] font-medium text-white/70">{stat2Label}</p>
+                  <p className="text-sm font-bold tabular-nums text-white mt-0.5">
+                    {displayStat2Val}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
+
+          {/* Mathematically Perfect Inward Concave Fillet Curve */}
+          <div className="absolute top-0 -right-5 w-5 h-5 pointer-events-none">
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              className="w-5 h-5 text-[#0047FF]"
+              style={{ color: "#0047FF" }}
+            >
+              <path
+                d="M 0 0 H 20 A 20 20 0 0 0 0 20 Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Recessed Notch Cutout Area containing the Dark Button */}
+        <div className="flex-1 flex justify-end items-center pl-6 pt-1.5 pb-0.5 pr-0.5">
+          <button
+            type="button"
+            onClick={handleAction}
+            className="h-[44px] px-4 sm:px-5 bg-[#1E2226] hover:bg-[#15181B] active:scale-[0.98] text-white rounded-[20px] flex items-center justify-center space-x-1.5 font-bold text-xs sm:text-[13px] shadow-[0_4px_16px_rgba(0,0,0,0.22)] transition-all touch-target cursor-pointer shrink-0"
+            style={{ backgroundColor: "#1E2226" }}
+          >
+            {actionIcon ? (
+              actionIcon
+            ) : (
+              <Plus size={16} strokeWidth={2.4} />
+            )}
+            <span>{actionText}</span>
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
+export default NotchedFinancialCard;

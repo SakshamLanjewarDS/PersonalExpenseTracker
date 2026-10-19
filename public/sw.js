@@ -1,67 +1,69 @@
-// PocketPlan Service Worker
-const CACHE_NAME = "pocketplan-v2";
-const STATIC_ASSETS = [
-  "/",
-  "/budgets",
-  "/transactions",
-  "/accounts",
-  "/payments",
-  "/insights",
-  "/settings",
-];
+// PocketPlan Service Worker v3
+const CACHE_NAME = "pocketplan-v3";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      await Promise.allSettled(
-        STATIC_ASSETS.map(async (asset) => {
-          try {
-            const res = await fetch(asset);
-            if (res.ok) {
-              await cache.put(asset, res);
-            }
-          } catch {
-            // Silently ignore during development or transient network hiccups
-          }
-        })
-      );
-    })
-  );
+  // Force activation immediately
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
+  // Purge all old caches (including pocketplan-v1 and pocketplan-v2)
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log("[SW] Deleting stale cache:", key);
             return caches.delete(key);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-
-  // Avoid caching API routes or external database requests
-  if (url.pathname.startsWith("/api/") || url.origin !== location.origin) {
+  // CRITICAL FIX: Only intercept GET requests.
+  // Cache API explicitly throws an error on POST, PUT, DELETE, PATCH:
+  // "TypeError: Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported"
+  if (event.request.method !== "GET") {
     return;
   }
 
-  // Network first with cache fallback for HTML pages
+  const url = new URL(event.request.url);
+
+  // Avoid caching API routes, development hot-reloads, or external origins
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_next/webpack-hmr") ||
+    url.origin !== location.origin
+  ) {
+    return;
+  }
+
+  // In development (localhost), bypass service worker caching completely
+  // so code changes and hot reload are never stale, preventing hydration mismatches
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return;
+  }
+
+  // Network-first strategy for live pages with offline cache fallback
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request) || caches.match("/"))
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((res) => res || caches.match("/")))
     );
     return;
   }
 
-  // Cache first for static assets
+  // Cache-first for static production assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

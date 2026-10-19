@@ -24,6 +24,7 @@ import {
   CategoryReallocation,
 } from "@/types/database";
 import { formatPaise, addPaise, subPaise } from "@/lib/money/paise";
+import { formatDateReadable } from "@/lib/dates/dates";
 import {
   deriveAccountBalance,
   deriveCategoryBudget,
@@ -166,17 +167,18 @@ export default function HomePage() {
 
       <main className="flex-1 px-4 py-3 md:px-6 md:py-6 max-w-md md:max-w-5xl mx-auto w-full space-y-4">
         {/* 2. Distinctive Primary Financial Card with Recessed Action */}
+        {/* 2. Top Header Financial Card matching user reference image */}
         <section aria-label="Main Financial Balance Card">
           <NotchedFinancialCard
-            title="Budget Remaining"
-            amount={totalAvailableBudgetPaise}
-            subtitle={`of ${formatPaise(totalAllocatedPaise)} allocated`}
-            stat1Label="Spent"
-            stat1Value={formatPaise(totalSpentPaise)}
-            stat2Label="used"
-            stat2Value={`${usedPct}%`}
-            actionText="Add expense"
-            onActionClick={() => setIsQuickAddOpen(true)}
+            title="TOTAL BALANCE"
+            amount={totalLiquidFundsPaise}
+            subtitle="Reflects all bank accounts and cash in hand."
+            stat1Label="Accounts"
+            stat1Value={accounts.length.toString()}
+            stat2Label="Account spending"
+            stat2Value={formatPaise(totalSpentPaise)}
+            actionText="Add account"
+            onActionClick={() => router.push("/accounts")}
           />
         </section>
 
