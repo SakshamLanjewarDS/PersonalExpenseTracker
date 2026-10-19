@@ -54,6 +54,7 @@ export interface BudgetAllocationEntry {
   userId: string;
   periodKey: string; // YYYY-MM
   categoryId: string;
+  accountId?: string;
   allocatedPaise: Paise;
   notes?: string;
   createdAt: string;

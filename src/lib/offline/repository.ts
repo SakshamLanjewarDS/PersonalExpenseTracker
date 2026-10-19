@@ -244,8 +244,10 @@ export class FinanceRepository {
     userId: string;
     periodKey: string;
     categoryId: string;
+    accountId?: string;
     allocatedPaise?: Paise;
     allocatedAmountPaise?: Paise;
+    notes?: string;
   }): Promise<BudgetAllocationEntry> {
     const allocatedPaise =
       params.allocatedPaise !== undefined
@@ -253,7 +255,7 @@ export class FinanceRepository {
         : params.allocatedAmountPaise !== undefined
         ? params.allocatedAmountPaise
         : 0;
-    const { userId, periodKey, categoryId } = params;
+    const { userId, periodKey, categoryId, accountId, notes } = params;
     assertValidPaise(allocatedPaise, "Allocated paise");
 
     const existing = await offlineDB.allocations
@@ -268,7 +270,9 @@ export class FinanceRepository {
       userId,
       periodKey,
       categoryId,
+      accountId: accountId !== undefined ? accountId : existing?.accountId,
       allocatedPaise,
+      notes: notes !== undefined ? notes : existing?.notes,
       createdAt: existing ? existing.createdAt : now,
       updatedAt: now,
     };
@@ -281,8 +285,10 @@ export class FinanceRepository {
     userId: string;
     periodKey: string;
     categoryId: string;
+    accountId?: string;
     allocatedPaise?: Paise;
     allocatedAmountPaise?: Paise;
+    notes?: string;
   }): Promise<BudgetAllocationEntry> {
     return this.allocateBudget(params);
   }

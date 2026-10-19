@@ -27,6 +27,7 @@ import { formatPaise, addPaise, subPaise } from "@/lib/money/paise";
 import { formatDateReadable } from "@/lib/dates/dates";
 import {
   deriveAccountBalance,
+  deriveAccountBudgetPool,
   deriveCategoryBudget,
 } from "@/lib/services/financeService";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -117,10 +118,20 @@ export default function HomePage() {
   });
   const router = useRouter();
 
-  // Primary account for balance display
-  const primaryAccount = accounts[0];
-  const primaryAccountBalance = primaryAccount
-    ? deriveAccountBalance(primaryAccount, transactions).balancePaise
+  // Primary / Salary account for pool balance display
+  const primaryAccount =
+    accounts.find((a) => a.type === "salary" || a.name.toLowerCase().includes("salary")) ||
+    accounts[0];
+  const primaryAccountPool = primaryAccount
+    ? deriveAccountBudgetPool({
+        account: primaryAccount,
+        transactions,
+        allocations,
+        allAccounts: accounts,
+      })
+    : null;
+  const primaryAccountDisplayBalance = primaryAccountPool
+    ? primaryAccountPool.remainingPoolPaise
     : totalLiquidFundsPaise;
 
   const quickActionItems = [
@@ -210,20 +221,27 @@ export default function HomePage() {
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold text-[#0B1D3A] truncate">
-                    {primaryAccount?.name || "SBI"}
+                    {primaryAccount?.name || "Salary Account"}
                   </h3>
-                  <p className="text-[11px] font-medium text-slate-400 capitalize">
-                    {primaryAccount?.type === "salary"
-                      ? "Salary Account"
-                      : "Savings Account"}
+                  <p className="text-[11px] font-medium text-slate-400">
+                    {primaryAccountPool && primaryAccountPool.allocatedPaise > 0
+                      ? `${formatPaise(primaryAccountPool.allocatedPaise)} allocated to envelopes`
+                      : primaryAccount?.type === "salary"
+                      ? "Unallocated Salary Pool"
+                      : "Account Balance"}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-1 shrink-0 text-right">
-                <span className="text-sm font-extrabold text-[#0B1D3A] tabular-nums">
-                  {formatPaise(primaryAccountBalance)}
-                </span>
+                <div>
+                  <span className="text-sm font-extrabold text-[#0B1D3A] tabular-nums block">
+                    {formatPaise(primaryAccountDisplayBalance)}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block font-medium">
+                    remaining pool
+                  </span>
+                </div>
                 <ChevronRight size={16} strokeWidth={2.4} className="text-slate-400" />
               </div>
             </div>

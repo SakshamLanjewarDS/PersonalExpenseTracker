@@ -23,7 +23,7 @@ import {
   Account,
 } from "@/types/database";
 import { formatPaise, parseRupeesToPaise, addPaise, subPaise } from "@/lib/money/paise";
-import { deriveCategoryBudget } from "@/lib/services/financeService";
+import { deriveCategoryBudget, deriveAccountBudgetPool } from "@/lib/services/financeService";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { NotchedFinancialCard } from "@/components/ui/NotchedFinancialCard";
@@ -59,6 +59,7 @@ export default function BudgetsPage() {
   const [isEditAllocOpen, setIsEditAllocOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [allocAmountStr, setAllocAmountStr] = useState("");
+  const [allocAccountId, setAllocAccountId] = useState("");
   const [allocError, setAllocError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -179,6 +180,11 @@ export default function BudgetsPage() {
   const handleOpenEditAlloc = (cat: Category, currentAllocatedPaise: number = 0) => {
     setEditingCat(cat);
     setAllocAmountStr((currentAllocatedPaise / 100).toString());
+    const existingAlloc = allocations.find((a) => a.categoryId === cat.id);
+    const defaultAcc =
+      accounts.find((a) => a.type === "salary" || a.name.toLowerCase().includes("salary")) ||
+      accounts[0];
+    setAllocAccountId(existingAlloc?.accountId || defaultAcc?.id || "");
     setAllocError(null);
     setIsEditAllocOpen(true);
   };
@@ -207,6 +213,7 @@ export default function BudgetsPage() {
         categoryId: editingCat.id,
         periodKey: selectedMonth,
         allocatedPaise: targetPaise,
+        accountId: allocAccountId || undefined,
       });
 
       setIsEditAllocOpen(false);
@@ -539,7 +546,32 @@ export default function BudgetsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Deduct from Salary & Allocate to {editingCat.name} (₹)
+                    Deduct from Account
+                  </label>
+                  <select
+                    value={allocAccountId}
+                    onChange={(e) => setAllocAccountId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-[#E7EBF2] rounded-xl focus:outline-[#1E5BFF]"
+                  >
+                    {accounts.map((acc) => {
+                      const pool = deriveAccountBudgetPool({
+                        account: acc,
+                        transactions,
+                        allocations,
+                        allAccounts: accounts,
+                      });
+                      return (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.name} ({formatPaise(pool.remainingPoolPaise)} remaining)
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Allocate to {editingCat.name} (₹)
                   </label>
                   <input
                     type="text"
@@ -550,9 +582,28 @@ export default function BudgetsPage() {
                     onChange={(e) => setAllocAmountStr(e.target.value)}
                     className="w-full px-3 py-2.5 text-base font-bold tabular-nums bg-slate-50 border border-[#E7EBF2] rounded-xl focus:outline-[#1E5BFF]"
                   />
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Available in Salary Pool: <strong>{formatPaise(unallocatedSalaryPaise)}</strong>
-                  </p>
+                  {(() => {
+                    const selectedAcc = accounts.find((a) => a.id === allocAccountId);
+                    if (selectedAcc) {
+                      const pool = deriveAccountBudgetPool({
+                        account: selectedAcc,
+                        transactions,
+                        allocations,
+                        allAccounts: accounts,
+                      });
+                      return (
+                        <p className="text-[11px] text-slate-500 mt-1">
+                          Available pool in {selectedAcc.name}:{" "}
+                          <strong className="text-[#0B1D3A]">{formatPaise(pool.remainingPoolPaise)}</strong>
+                        </p>
+                      );
+                    }
+                    return (
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Available in Salary Pool: <strong>{formatPaise(unallocatedSalaryPaise)}</strong>
+                      </p>
+                    );
+                  })()}
                 </div>
 
                 <div className="pt-2 flex space-x-2">

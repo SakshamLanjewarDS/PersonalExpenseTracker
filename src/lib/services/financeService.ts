@@ -377,3 +377,50 @@ export function calculateLoanSummary(
     nextDueInstallment,
   };
 }
+
+/**
+ * Calculates Account Budget & Remaining Pool factoring in envelope allocations.
+ * For example: if Salary is ₹12,000 and ₹2,000 is allocated to Petrol from Salary Account,
+ * remainingPoolPaise directly reflects ₹10,000 remaining pool.
+ */
+export function deriveAccountBudgetPool(params: {
+  account: Account;
+  transactions?: Transaction[];
+  allocations: BudgetAllocationEntry[];
+  allAccounts?: Account[];
+}): {
+  openingBalancePaise: Paise;
+  allocatedPaise: Paise;
+  remainingPoolPaise: Paise;
+  balancePaise: Paise;
+  totalExpensesPaise: Paise;
+} {
+  const { account, transactions = [], allocations, allAccounts = [] } = params;
+  const isSalary = account.type === "salary" || account.name.toLowerCase().includes("salary");
+
+  const defaultSalaryAccount = allAccounts.find(
+    (a) => a.type === "salary" || a.name.toLowerCase().includes("salary")
+  );
+  const defaultAccountId = defaultSalaryAccount ? defaultSalaryAccount.id : allAccounts[0]?.id;
+
+  // Filter allocations funded from this account
+  const accountAllocations = allocations.filter((alloc) => {
+    if (alloc.accountId) {
+      return alloc.accountId === account.id;
+    }
+    // If not explicitly set, attribute to default salary account
+    return isSalary || (defaultAccountId ? account.id === defaultAccountId : true);
+  });
+
+  const allocatedPaise = accountAllocations.reduce((sum, a) => addPaise(sum, a.allocatedPaise), 0);
+  const { balancePaise, totalExpensesPaise } = deriveAccountBalance(account, transactions);
+  const remainingPoolPaise = subPaise(account.openingBalancePaise, allocatedPaise);
+
+  return {
+    openingBalancePaise: account.openingBalancePaise,
+    allocatedPaise,
+    remainingPoolPaise,
+    balancePaise,
+    totalExpensesPaise,
+  };
+}

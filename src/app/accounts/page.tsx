@@ -20,19 +20,20 @@ import {
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/AppProviders";
 import { FinanceRepository } from "@/lib/offline/repository";
-import { Account, Transaction, AccountType } from "@/types/database";
+import { Account, Transaction, AccountType, BudgetAllocationEntry } from "@/types/database";
 import { formatPaise, parseRupeesToPaise, addPaise } from "@/lib/money/paise";
-import { deriveAccountBalance } from "@/lib/services/financeService";
+import { deriveAccountBalance, deriveAccountBudgetPool } from "@/lib/services/financeService";
 import { getTodayDateString } from "@/lib/dates/dates";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { NotchedFinancialCard } from "@/components/ui/NotchedFinancialCard";
 import { QuickActionGrid } from "@/components/ui/QuickActionGrid";
 
 export default function AccountsPage() {
-  const { userId, refreshKey, triggerRefresh } = useApp();
+  const { userId, selectedMonth, refreshKey, triggerRefresh } = useApp();
 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allocations, setAllocations] = useState<BudgetAllocationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Transfer modal
@@ -66,23 +67,30 @@ export default function AccountsPage() {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [accs, txs] = await Promise.all([
+        const [accs, txs, allocs] = await Promise.all([
           FinanceRepository.getAccounts(userId),
           FinanceRepository.getTransactions(userId),
+          FinanceRepository.getAllocations(userId, selectedMonth),
         ]);
         setAccounts(accs);
         setTransactions(txs);
+        setAllocations(allocs);
       } finally {
         setIsLoading(false);
       }
     }
     loadData();
-  }, [userId, refreshKey]);
+  }, [userId, selectedMonth, refreshKey]);
 
-  // Derived balances
+  // Derived balances & pools
   const accountsWithBalances = accounts.map((acc) => ({
     account: acc,
-    ...deriveAccountBalance(acc, transactions),
+    ...deriveAccountBudgetPool({
+      account: acc,
+      transactions,
+      allocations,
+      allAccounts: accounts,
+    }),
   }));
 
   const totalLiquidPaise = accountsWithBalances.reduce(
@@ -335,75 +343,85 @@ export default function AccountsPage() {
             </button>
           </div>
 
-          {accountsWithBalances.map(({ account, balancePaise, totalExpensesPaise }) => {
-            const IconComponent = getAccountIcon(account.type);
-            const isMain =
-              account.type === "salary" ||
-              account.name.toLowerCase().includes("salary");
+          {accountsWithBalances.map(
+            ({
+              account,
+              balancePaise,
+              remainingPoolPaise,
+              allocatedPaise,
+              totalExpensesPaise,
+            }) => {
+              const IconComponent = getAccountIcon(account.type);
+              const isMain =
+                account.type === "salary" ||
+                account.name.toLowerCase().includes("salary");
 
-            return (
-              <div
-                key={account.id}
-                className="bg-[#EEF3FF] p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] space-y-3"
-              >
-                {/* Top Row: Icon + Name/Badge + Menu */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
-                      <IconComponent size={20} strokeWidth={2.2} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-sm font-bold text-[#0B1D3A] truncate">
-                          {account.name}
-                        </h3>
-                        {isMain ? (
-                          <span className="bg-white/90 text-[#0047FF] border border-[#0047FF]/20 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                            Main Salary
-                          </span>
-                        ) : account.type === "savings" ? (
-                          <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                            Savings
-                          </span>
-                        ) : null}
+              return (
+                <div
+                  key={account.id}
+                  className="bg-[#EEF3FF] p-4 rounded-[22px] shadow-[0_1px_3px_rgba(0,56,255,0.03)] space-y-3"
+                >
+                  {/* Top Row: Icon + Name/Badge + Menu */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-white text-[#0047FF] flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,56,255,0.06)]">
+                        <IconComponent size={20} strokeWidth={2.2} />
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5 capitalize">
-                        {account.type === "salary"
-                          ? "Salary Account"
-                          : `${account.type} Account`}
+                      <div className="min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="text-sm font-bold text-[#0B1D3A] truncate">
+                            {account.name}
+                          </h3>
+                          {isMain ? (
+                            <span className="bg-white/90 text-[#0047FF] border border-[#0047FF]/20 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                              Main Salary
+                            </span>
+                          ) : account.type === "savings" ? (
+                            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                              Savings
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5 capitalize">
+                          {account.type === "salary"
+                            ? "Salary Account"
+                            : `${account.type} Account`}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleOpenEditAccount(account)}
+                      className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-white/80 rounded-lg transition-colors shrink-0"
+                      aria-label="Account Options"
+                    >
+                      <MoreVertical size={18} strokeWidth={2.2} />
+                    </button>
+                  </div>
+
+                  {/* Bottom Row: Current Balance / Remaining Pool & Opening / Allocated */}
+                  <div className="flex items-end justify-between pt-1">
+                    <div>
+                      <span className="text-[11px] text-slate-400 block font-medium">
+                        Remaining Pool
+                      </span>
+                      <span className="text-xl font-extrabold text-[#0B1D3A] tabular-nums block mt-0.5">
+                        {formatPaise(remainingPoolPaise)}
+                      </span>
+                    </div>
+
+                    <div className="text-right text-xs">
+                      <p className="text-[11px] text-slate-400">
+                        Opening: <span className="font-semibold text-slate-600">{formatPaise(account.openingBalancePaise)}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Allocated: <span className="font-semibold text-[#0047FF]">{formatPaise(allocatedPaise)}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Spent: <span className="font-semibold text-slate-600">{formatPaise(totalExpensesPaise)}</span>
                       </p>
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => handleOpenEditAccount(account)}
-                    className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-white/80 rounded-lg transition-colors shrink-0"
-                    aria-label="Account Options"
-                  >
-                    <MoreVertical size={18} strokeWidth={2.2} />
-                  </button>
-                </div>
-
-                {/* Bottom Row: Current Balance (Left) & Opening / Spending (Right) */}
-                <div className="flex items-end justify-between pt-1">
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-medium">
-                      Current Balance
-                    </span>
-                    <span className="text-xl font-extrabold text-[#0B1D3A] tabular-nums block mt-0.5">
-                      {formatPaise(balancePaise)}
-                    </span>
-                  </div>
-
-                  <div className="text-right text-xs">
-                    <p className="text-[11px] text-slate-400">
-                      Opening: <span className="font-semibold text-slate-600">{formatPaise(account.openingBalancePaise)}</span>
-                    </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Account spending: <span className="font-semibold text-slate-600">{formatPaise(totalExpensesPaise)}</span>
-                    </p>
-                  </div>
-                </div>
 
                 {/* Footnote */}
                 <p className="text-[10px] text-slate-400 pt-1 border-t border-white/60">

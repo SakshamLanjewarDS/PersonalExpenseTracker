@@ -8,6 +8,7 @@ import {
 } from "@/lib/money/paise";
 import {
   deriveAccountBalance,
+  deriveAccountBudgetPool,
   deriveCategoryBudget,
   validateSplitExpense,
   generateInstallmentSchedule,
@@ -515,5 +516,43 @@ describe("PocketPlan Acceptance Tests — Financial & Business Invariants", () =
       runningPaise = subPaise(runningPaise, 10);
     }
     expect(runningPaise).toBe(0);
+  });
+
+  // Scenario 24: Direct deduction from Salary Account pool when category allocation is made
+  it("Scenario 24: Direct deduction from Salary Account pool when category allocation is made", () => {
+    const salaryAccount: Account = {
+      id: "acc-salary",
+      userId,
+      name: "Salary Account",
+      type: "salary",
+      openingBalancePaise: 1200000, // ₹12,000
+      openingDate: "2026-10-01",
+      isArchived: false,
+      createdAt: "2026-10-01T00:00:00Z",
+      updatedAt: "2026-10-01T00:00:00Z",
+    };
+
+    const petrolAlloc: BudgetAllocationEntry = {
+      id: "alloc-1",
+      userId,
+      periodKey: "2026-10",
+      categoryId: petrolCategory.id,
+      accountId: salaryAccount.id,
+      allocatedPaise: 200000, // ₹2,000
+      createdAt: "2026-10-01T00:00:00Z",
+      updatedAt: "2026-10-01T00:00:00Z",
+    };
+
+    const pool = deriveAccountBudgetPool({
+      account: salaryAccount,
+      transactions: [],
+      allocations: [petrolAlloc],
+      allAccounts: [salaryAccount],
+    });
+
+    expect(pool.openingBalancePaise).toBe(1200000); // ₹12,000
+    expect(pool.allocatedPaise).toBe(200000); // ₹2,000
+    expect(pool.remainingPoolPaise).toBe(1000000); // ₹10,000 remaining pool
+    expect(formatPaise(pool.remainingPoolPaise)).toBe("₹10,000");
   });
 });
