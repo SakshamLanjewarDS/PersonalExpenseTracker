@@ -168,7 +168,7 @@ export default function AccountsPage() {
         name: newAccName.trim(),
         type: newAccType,
         openingBalancePaise: openingPaise,
-        currency: "INR",
+        openingDate: new Date().toISOString().split("T")[0],
         description: newAccDesc.trim() || undefined,
         isArchived: false,
         createdAt: new Date().toISOString(),
