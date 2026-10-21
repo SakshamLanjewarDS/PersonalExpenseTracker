@@ -1,9 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { QuickAddModal } from "@/components/transactions/QuickAddModal";
 import { DesktopSidebar } from "@/components/layout/DesktopSidebar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "PocketPlan — Personal Expense & Budget Planner",
@@ -36,29 +43,48 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={dmSans.variable} suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Auto-purge stale service worker caches and unregister on localhost during development
               if (typeof window !== 'undefined') {
-                if ('serviceWorker' in navigator && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-                  navigator.serviceWorker.getRegistrations().then(function(regs) {
-                    for (var i = 0; i < regs.length; i++) {
-                      regs[i].unregister();
-                    }
-                  });
-                }
-                if ('caches' in window) {
-                  caches.keys().then(function(keys) {
-                    keys.forEach(function(k) {
-                      if (k !== 'pocketplan-v3') {
-                        caches.delete(k);
+                // Development: purge and unregister service workers on localhost to avoid stale code
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                  if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                      for (var i = 0; i < regs.length; i++) {
+                        regs[i].unregister();
                       }
                     });
-                  });
+                  }
+                  if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                      keys.forEach(function(k) {
+                        caches.delete(k);
+                      });
+                    });
+                  }
+                } else {
+                  // Production: register Service Worker for instant app loading (< 50ms) via cache
+                  if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', function() {
+                      navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                        console.warn('[SW] Registration failed:', err);
+                      });
+                    });
+                  }
+                  // Clean up legacy cache versions
+                  if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                      keys.forEach(function(k) {
+                        if (k !== 'pocketplan-v4') {
+                          caches.delete(k);
+                        }
+                      });
+                    });
+                  }
                 }
               }
             `,

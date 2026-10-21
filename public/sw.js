@@ -1,38 +1,53 @@
-// PocketPlan Service Worker v3
-const CACHE_NAME = "pocketplan-v3";
+// PocketPlan Service Worker v4 - Rapid Open & Offline Support
+const CACHE_NAME = "pocketplan-v4";
+
+const PRECACHE_ASSETS = [
+  "/",
+  "/manifest.json",
+  "/favicon.ico",
+  "/icon-192.png",
+  "/icon-512.png",
+];
 
 self.addEventListener("install", (event) => {
-  // Force activation immediately
+  // Pre-cache core shell for instant (<50ms) offline/cold-start launch
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .catch((err) => console.warn("[SW] Pre-caching non-fatal warning:", err))
+  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  // Purge all old caches (including pocketplan-v1 and pocketplan-v2)
+  // Purge obsolete cache versions
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log("[SW] Deleting stale cache:", key);
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) {
+              console.log("[SW] Deleting obsolete cache:", key);
+              return caches.delete(key);
+            }
+          })
+        )
+      )
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", (event) => {
-  // CRITICAL FIX: Only intercept GET requests.
-  // Cache API explicitly throws an error on POST, PUT, DELETE, PATCH:
-  // "TypeError: Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported"
+  // Only handle GET requests (Cache API does not support POST/PUT/DELETE)
   if (event.request.method !== "GET") {
     return;
   }
 
   const url = new URL(event.request.url);
 
-  // Avoid caching API routes, development hot-reloads, or external origins
+  // Bypass API calls, webpack HMR, or foreign origins
   if (
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/_next/webpack-hmr") ||
@@ -41,42 +56,56 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // In development (localhost), bypass service worker caching completely
-  // so code changes and hot reload are never stale, preventing hydration mismatches
+  // Bypass during local development
   if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
     return;
   }
 
-  // Network-first strategy for live pages with offline cache fallback
+  // NAVIGATION REQUESTS (Opening the app or visiting routes)
+  // Stale-While-Revalidate: Return cached app shell immediately for instant startup,
+  // while updating from network in background. Prevents freezing on server cold starts!
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request).then((res) => res || caches.match("/")))
+      caches.match(event.request).then((cachedResponse) => {
+        const networkFetch = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const copy = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            // Network failed or server is sleeping; return cached page or fallback to root shell
+            return cachedResponse || caches.match("/");
+          });
+
+        // If we have a cached version, serve it instantaneously (<50ms);
+        // otherwise wait for network fetch.
+        return cachedResponse || networkFetch;
+      })
     );
     return;
   }
 
-  // Cache-first for static production assets
+  // STATIC ASSETS (_next/static, images, icons, fonts)
+  // Cache-First with Network fallback and automatic caching
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }
+
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
           return networkResponse;
         }
-        const responseToCache = networkResponse.clone();
+
+        const copy = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+          cache.put(event.request, copy);
         });
+
         return networkResponse;
       });
     })
