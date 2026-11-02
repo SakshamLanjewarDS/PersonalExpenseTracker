@@ -33,8 +33,9 @@ export function MobileBottomNav() {
             return (
               <button
                 key="add-button"
+                type="button"
                 onClick={() => setIsQuickAddOpen(true)}
-                className="flex flex-col items-center justify-center -mt-7 focus:outline-none group touch-target"
+                className="flex flex-col items-center justify-center -mt-7 focus:outline-none group touch-target cursor-pointer"
                 aria-label="Add Transaction"
               >
                 <div className="w-14 h-14 rounded-full bg-[#0047FF] text-white flex items-center justify-center shadow-[0_6px_20px_rgba(0,71,255,0.42)] active:scale-95 hover:bg-[#0038D1] transition-all">

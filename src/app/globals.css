@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PocketPlan Global Styles */
 :root {
   --background: #F7F8FC;
   --surface: #FFFFFF;

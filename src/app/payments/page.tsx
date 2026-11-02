@@ -379,7 +379,12 @@ export default function PaymentsPage() {
 
         {/* Add EMI Loan Modal */}
         {isAddLoanOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsAddLoanOpen(false);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">Add EMI Plan</h3>
@@ -500,7 +505,12 @@ export default function PaymentsPage() {
 
         {/* Pay Installment Modal */}
         {payingInst && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setPayingInst(null);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">

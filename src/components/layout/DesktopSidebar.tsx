@@ -35,20 +35,21 @@ export function DesktopSidebar() {
     <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 bg-white min-h-screen px-4 py-6 justify-between shrink-0">
       <div className="space-y-6">
         {/* Brand */}
-        <div className="flex items-center space-x-2.5 px-2">
-          <div className="w-8 h-8 rounded-xl bg-[#1E5BFF] text-white flex items-center justify-center font-bold text-base shadow-sm">
+        <Link href="/" className="flex items-center space-x-2.5 px-2 group">
+          <div className="w-8 h-8 rounded-xl bg-[#0047FF] text-white flex items-center justify-center font-bold text-base shadow-sm group-hover:bg-[#0038CC] transition-colors">
             P
           </div>
           <div>
-            <h1 className="font-bold text-base tracking-tight text-[#0B1D3A]">PocketPlan</h1>
+            <h1 className="font-bold text-base tracking-tight text-[#0B1D3A] group-hover:text-[#0047FF] transition-colors">PocketPlan</h1>
             <p className="text-[11px] text-slate-500">Personal Finance</p>
           </div>
-        </div>
+        </Link>
 
         {/* Quick Add Button */}
         <button
+          type="button"
           onClick={() => setIsQuickAddOpen(true)}
-          className="w-full flex items-center justify-center space-x-2 bg-[#1E5BFF] text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-sm hover:bg-[#1546CC] transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-[#1E5BFF]"
+          className="w-full flex items-center justify-center space-x-2 bg-[#0047FF] hover:bg-[#0038CC] active:scale-95 text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-[#0047FF]"
         >
           <Plus size={18} strokeWidth={2.5} />
           <span>Add Transaction</span>

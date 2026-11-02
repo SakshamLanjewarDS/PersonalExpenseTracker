@@ -61,6 +61,18 @@ export default function TransactionsPage() {
         setAccounts(accs);
         setCategories(cats);
         setTransactions(txs);
+
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const catParam = params.get("category");
+          if (catParam) {
+            setSelectedCategory(catParam);
+          }
+          const accParam = params.get("account");
+          if (accParam) {
+            setSelectedAccount(accParam);
+          }
+        }
       } finally {
         setIsLoading(false);
       }
@@ -330,7 +342,12 @@ export default function TransactionsPage() {
 
         {/* Transaction Action Modal */}
         {selectedTx && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedTx(null);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">Transaction Details</h3>
@@ -388,7 +405,12 @@ export default function TransactionsPage() {
 
         {/* Filter Sheet */}
         {isFilterSheetOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsFilterSheetOpen(false);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">Filter Transactions</h3>

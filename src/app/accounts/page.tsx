@@ -16,6 +16,8 @@ import {
   Clock,
   LayoutGrid,
   Landmark,
+  ArrowUpRight,
+  RotateCcw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/AppProviders";
@@ -270,18 +272,16 @@ export default function AccountsPage() {
 
   const accountQuickActions = [
     {
+      id: "add-account",
+      label: "Add Bank",
+      icon: Plus,
+      onClick: () => setIsAddAccountOpen(true),
+    },
+    {
       id: "transfer",
       label: "Transfer",
       icon: ArrowRightLeft,
       onClick: () => handleOpenTransfer(),
-    },
-    {
-      id: "edit",
-      label: "Edit",
-      icon: Pencil,
-      onClick: () => {
-        if (accounts.length > 0) handleOpenEditAccount(accounts[0]);
-      },
     },
     {
       id: "history",
@@ -290,9 +290,9 @@ export default function AccountsPage() {
       onClick: () => router.push("/transactions"),
     },
     {
-      id: "more",
-      label: "More",
-      icon: LayoutGrid,
+      id: "reset",
+      label: "Reset Data",
+      icon: RotateCcw,
       onClick: () => setIsCleanSlateConfirmOpen(true),
     },
   ];
@@ -321,7 +321,7 @@ export default function AccountsPage() {
             stat1Value={accounts.length.toString()}
             stat2Label="Account spending"
             stat2Value={formatPaise(totalAccountSpendingPaise)}
-            actionText="Add account"
+            actionText="Add Bank"
             onActionClick={() => setIsAddAccountOpen(true)}
           />
         </section>
@@ -334,12 +334,14 @@ export default function AccountsPage() {
         {/* 4. Accounts List Section matching Image 3 Left */}
         <section aria-label="Accounts List" className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold text-[#0B1D3A]">Accounts</h2>
+            <h2 className="text-sm font-bold text-[#0B1D3A]">Accounts ({accounts.length})</h2>
             <button
+              type="button"
               onClick={() => setIsAddAccountOpen(true)}
-              className="text-xs font-bold text-[#0047FF] hover:underline"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#0047FF] hover:bg-[#0038CC] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer touch-target"
             >
-              See all &gt;
+              <Plus size={14} strokeWidth={2.6} />
+              <span>Add Bank</span>
             </button>
           </div>
 
@@ -391,8 +393,9 @@ export default function AccountsPage() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => handleOpenEditAccount(account)}
-                      className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-white/80 rounded-lg transition-colors shrink-0"
+                      className="p-1.5 text-slate-400 hover:text-[#0B1D3A] hover:bg-white/80 rounded-lg transition-colors shrink-0 cursor-pointer"
                       aria-label="Account Options"
                     >
                       <MoreVertical size={18} strokeWidth={2.2} />
@@ -423,18 +426,73 @@ export default function AccountsPage() {
                     </div>
                   </div>
 
-                {/* Footnote */}
-                <p className="text-[10px] text-slate-400 pt-1 border-t border-white/60">
-                  Balances reflect recorded account activity.
-                </p>
-              </div>
-            );
-          })}
+                  {/* Card Actions Footer */}
+                  <div className="flex items-center justify-between pt-2 border-t border-white/60 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFromAccountId(account.id);
+                        const other = accounts.find((a) => a.id !== account.id);
+                        setToAccountId(other?.id || "");
+                        setIsTransferModalOpen(true);
+                      }}
+                      className="text-slate-600 hover:text-[#0047FF] font-semibold flex items-center space-x-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                    >
+                      <ArrowRightLeft size={12} strokeWidth={2.2} />
+                      <span>Transfer</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/transactions?account=${account.id}`)}
+                      className="text-slate-600 hover:text-[#0047FF] font-semibold flex items-center space-x-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                    >
+                      <ArrowUpRight size={13} strokeWidth={2.2} />
+                      <span>History</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditAccount(account)}
+                      className="text-[#0047FF] font-bold hover:underline flex items-center space-x-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                    >
+                      <Pencil size={12} strokeWidth={2.2} />
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAccount(account.id)}
+                      className="text-slate-400 hover:text-red-600 font-semibold flex items-center space-x-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                    >
+                      <Trash2 size={12} strokeWidth={2.2} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+          )}
+
+          {/* Bottom Add Account Button */}
+          <button
+            type="button"
+            onClick={() => setIsAddAccountOpen(true)}
+            className="w-full py-3.5 px-4 border-2 border-dashed border-[#0047FF]/30 hover:border-[#0047FF] bg-white/60 hover:bg-[#EEF3FF]/50 rounded-[22px] text-[#0047FF] text-xs font-bold flex items-center justify-center space-x-2 transition-all shadow-[0_1px_3px_rgba(0,56,255,0.02)] cursor-pointer touch-target"
+          >
+            <Plus size={16} strokeWidth={2.4} />
+            <span>Add Another Bank / Cash Account</span>
+          </button>
         </section>
 
         {/* Transfer Modal */}
         {isTransferModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsTransferModalOpen(false);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">Transfer Between Accounts</h3>
@@ -536,7 +594,12 @@ export default function AccountsPage() {
 
         {/* Add Account Modal */}
         {isAddAccountOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsAddAccountOpen(false);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">Add New Account</h3>
@@ -620,7 +683,12 @@ export default function AccountsPage() {
 
         {/* Edit Account Modal */}
         {editingAccount && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setEditingAccount(null);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-base text-[#0B1D3A]">Edit Account</h3>
@@ -710,7 +778,12 @@ export default function AccountsPage() {
 
         {/* Clean Slate Confirmation Modal */}
         {isCleanSlateConfirmOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsCleanSlateConfirmOpen(false);
+            }}
+          >
             <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
               <div className="flex items-center space-x-3 text-amber-600">
                 <AlertTriangle size={24} />

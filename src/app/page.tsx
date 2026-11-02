@@ -136,9 +136,9 @@ export default function HomePage() {
 
   const quickActionItems = [
     {
-      id: "income",
-      label: "Income",
-      icon: Download,
+      id: "add",
+      label: "Add Expense",
+      icon: Plus,
       onClick: () => setIsQuickAddOpen(true),
     },
     {

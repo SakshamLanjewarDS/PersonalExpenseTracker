@@ -230,6 +230,16 @@ export class FinanceRepository {
     return category;
   }
 
+  static async deleteCategory(userId: string, categoryId: string): Promise<void> {
+    const cat = await offlineDB.categories.get(categoryId);
+    if (cat && cat.userId === userId) {
+      await offlineDB.transaction("rw", [offlineDB.categories, offlineDB.allocations], async () => {
+        await offlineDB.categories.delete(categoryId);
+        await offlineDB.allocations.where("categoryId").equals(categoryId).delete();
+      });
+    }
+  }
+
   // --- BUDGET ALLOCATIONS & REALLOCATIONS ---
 
   static async getAllocations(userId: string, periodKey: string): Promise<BudgetAllocationEntry[]> {
